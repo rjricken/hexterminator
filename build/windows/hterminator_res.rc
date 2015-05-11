@@ -1,0 +1,10 @@
+/* HEXterminator: The Monkey-Moore Chronicles */
+
+ahterminator ICON "hterminator.ico"
+hterminator ICON "hterminator.ico"
+
+
+// set this to 1 if you don't want to use manifest resource (manifest resource
+// is needed to enable visual styles on Windows XP - see docs/msw/winxp.txt
+// for more information)
+#define wxUSE_NO_MANIFEST 1

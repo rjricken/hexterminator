@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files\Doc/View">
+      <UniqueIdentifier>{fe7728c2-9dc0-4558-8dfb-19820f29cff3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\User Interface">
+      <UniqueIdentifier>{83aa4c7a-b210-4863-991d-fa568ba84847}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Header Files\Doc/View">
+      <UniqueIdentifier>{ce12454f-c198-42dd-be5e-88f2f4c8edd7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\User Interface">
+      <UniqueIdentifier>{c965086c-ba25-49a5-84a4-99effb47e34e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\User Interface\Dialogs">
+      <UniqueIdentifier>{0c68c367-bf6a-4c69-b88d-521b60d35210}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\User Interface\Panels">
+      <UniqueIdentifier>{54d3adc3-0d64-4e61-b46c-615d313b9603}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Misc">
+      <UniqueIdentifier>{8aebafb3-77c6-41a5-88fd-6a63cc15329a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\ht_app.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\hex_doc.cpp">
+      <Filter>Source Files\Doc/View</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\hex_view.cpp">
+      <Filter>Source Files\Doc/View</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\hex_frame.cpp">
+      <Filter>Source Files\User Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ht_mainframe.cpp">
+      <Filter>Source Files\User Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\debug_panel.cpp">
+      <Filter>Source Files\User Interface</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\constants.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ht_app.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\hex_doc.hpp">
+      <Filter>Header Files\Doc/View</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\hex_view.hpp">
+      <Filter>Header Files\Doc/View</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\hex_frame.hpp">
+      <Filter>Header Files\User Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ht_mainframe.hpp">
+      <Filter>Header Files\User Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ht_about.hpp">
+      <Filter>Header Files\User Interface\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\bookmarks_panel.hpp">
+      <Filter>Header Files\User Interface\Panels</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ht_artprovider.hpp">
+      <Filter>Header Files\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ht_prefs.hpp">
+      <Filter>Header Files\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\debug_panel.hpp">
+      <Filter>Header Files\User Interface\Panels</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="hterminator_res.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
