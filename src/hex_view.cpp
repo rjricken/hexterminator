@@ -39,8 +39,9 @@ END_EVENT_TABLE()*/
 
 HexView::HexView ()
 {
-   wxLogDebug("[HexView] created at 0x%X.", reinterpret_cast<int>(this));
+   wxLogDebug("[HexView] created at 0x%llX.", reinterpret_cast<uint64_t>(this));
 
+   m_base = wxRect(0, 0, 0, 0);
    m_frame = 0;
    view_data = 0;
    view_data_sz = 0;
@@ -72,7 +73,7 @@ HexView::HexView ()
 
 HexView::~HexView ()
 {
-   wxLogDebug("[HexView] at 0x%X destroyed.", reinterpret_cast<int>(this));
+   wxLogDebug("[HexView] at 0x%llX destroyed.", reinterpret_cast<uint64_t>(this));
 
    if (view_data)
       delete [] view_data;
@@ -279,15 +280,15 @@ void HexView::OnKillFocus(wxFocusEvent &event)
 
 
 /*
-No HexEdit, a renderização é composta das seguintes etapas:
-+ pré-processamento e cálculo de valores posteriormente necessários
-+ cálculo da parte do arquivo que precisar ser renderizada
-+ renderização dos resultados da busca
-+ renderização das áreas em highlight
-+ renderização do(s) marcador(es)
-+ renderização dos offsets
-+ renderização dos hexadecimais e caracteres, alternadamente
-+ inversão das colunas que estiverem selecionadas
+No HexEdit, a renderizaï¿½ï¿½o ï¿½ composta das seguintes etapas:
++ prï¿½-processamento e cï¿½lculo de valores posteriormente necessï¿½rios
++ cï¿½lculo da parte do arquivo que precisar ser renderizada
++ renderizaï¿½ï¿½o dos resultados da busca
++ renderizaï¿½ï¿½o das ï¿½reas em highlight
++ renderizaï¿½ï¿½o do(s) marcador(es)
++ renderizaï¿½ï¿½o dos offsets
++ renderizaï¿½ï¿½o dos hexadecimais e caracteres, alternadamente
++ inversï¿½o das colunas que estiverem selecionadas
 */
 void HexView::OnDraw (wxDC *dc)
 {
@@ -558,14 +559,14 @@ void HexView::MovePos(int key, bool ctrl_down, bool shift_down, bool alt_down)
       
    m_caretpos = wxPoint(col, row);
 
-   /* as variáveis m_start_pos e m_end_pos são atualizadas apenas na função
-    OnDraw(), e talvez seja necessário mudar isso porque tem outras partes da HexView
-    que dependem de valores atualizados dessas variáveis antes do próximo OnDraw.
+   /* as variï¿½veis m_start_pos e m_end_pos sï¿½o atualizadas apenas na funï¿½ï¿½o
+    OnDraw(), e talvez seja necessï¿½rio mudar isso porque tem outras partes da HexView
+    que dependem de valores atualizados dessas variï¿½veis antes do prï¿½ximo OnDraw.
 
-    A navegação não-linear do documento por exemplo requer cálculos para reposicionamento
-    dos elementos gráficos da view antes do próximo Draw, então talvez a melhor opção seja
-    passar esse cálculo de atualização das variáveis para uma função e chamá-la caso necessário,
-    ou ainda atualizar esses valores após qualquer alteração que os afete.
+    A navegaï¿½ï¿½o nï¿½o-linear do documento por exemplo requer cï¿½lculos para reposicionamento
+    dos elementos grï¿½ficos da view antes do prï¿½ximo Draw, entï¿½o talvez a melhor opï¿½ï¿½o seja
+    passar esse cï¿½lculo de atualizaï¿½ï¿½o das variï¿½veis para uma funï¿½ï¿½o e chamï¿½-la caso necessï¿½rio,
+    ou ainda atualizar esses valores apï¿½s qualquer alteraï¿½ï¿½o que os afete.
     */
    if (m_caretpos.y >= m_end_line - m_additional_line ? 1 : 0)
    {
@@ -598,7 +599,7 @@ void HexView::RecalcDisplay ()
    dc.SetFont(*wxTheFontList->FindOrCreateFont(12, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Courier")));
 
    text_sz = wxSize(dc.GetCharWidth(), dc.GetCharHeight());
-   m_addr_width = wxString::Format(wxT("%X:"), view_data_sz).size();
+   m_addr_width = wxString::Format(wxT("%lX:"), view_data_sz).size();
    m_addr_fmt = wxString::Format(wxT("%%0%dX:"), m_addr_width - 1);
 
    wxSize client_sz = m_frame->GetClientSize();
@@ -645,7 +646,7 @@ void HexView::UpdateScrollbars ()
       extra += m_numshown - (m_end_line - m_start_line);
 
    if (m_frame->HasFocus())
-      wxLogStatus("[HexView] UpdateScrollbars: m_numlines(%d), m_numshown(%d), extra(%d)", m_numlines + extra, m_numshown, extra);
+      wxLogStatus("[HexView] UpdateScrollbars: m_numlines(%ld), m_numshown(%ld), extra(%d)", m_numlines + extra, m_numshown, extra);
 
    // show/adjust or hide the vertical scrollbar
    if (m_numlines >= m_numshown)
@@ -697,26 +698,26 @@ int HexView::Pos2CharCol (const int pos) const
    return col;
 }
 
-#ifdef WXDEBUG
+#ifndef NDEBUG
 void HexView::AddToDebugPanel (DebugPanel *dbgPanel)
 {
-   dbgPanel->AddProperty("[View] m_numlines", DebugPanel::Type_Long, &m_numlines);
+   /*dbgPanel->AddProperty("[View] m_numlines", DebugPanel::Type_Long, &m_numlines);
    dbgPanel->AddProperty("[View] m_numshown", DebugPanel::Type_Long, &m_numshown);
    dbgPanel->AddProperty("[View] m_start_line", DebugPanel::Type_Long, &m_start_line);
    dbgPanel->AddProperty("[View] m_end_line", DebugPanel::Type_Long, &m_end_line);
    dbgPanel->AddProperty("[View] m_caretpos", DebugPanel::Type_wxPoint, &m_caretpos);
    dbgPanel->AddProperty("[View] m_base", DebugPanel::Type_wxRect, &m_base);
-   dbgPanel->AddProperty("[View] m_scrollpos", DebugPanel::Type_wxPoint, &m_scrollpos);
+   dbgPanel->AddProperty("[View] m_scrollpos", DebugPanel::Type_wxPoint, &m_scrollpos);*/
 }
 
 void HexView::RemoveFromDebugPanel (DebugPanel *dbgPanel)
 {
-   dbgPanel->RemoveProperty("[View] m_numlines");
+   /*dbgPanel->RemoveProperty("[View] m_numlines");
    dbgPanel->RemoveProperty("[View] m_numshown");
    dbgPanel->RemoveProperty("[View] m_start_line");
    dbgPanel->RemoveProperty("[View] m_end_line");
    dbgPanel->RemoveProperty("[View] m_caretpos");
    dbgPanel->RemoveProperty("[View] m_base");
-   dbgPanel->RemoveProperty("[View] m_scrollpos");
+   dbgPanel->RemoveProperty("[View] m_scrollpos");*/
 }
 #endif

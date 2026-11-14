@@ -1,0 +1,15 @@
+build/
+build-release/
+cmake-build-debug/
+CMakeFiles/
+CMakeCache.txt
+*.cmake
+
+*.a
+*.lib
+*.exe
+*.o
+*.obj
+
+.DS_Store
+Thumbs.db

@@ -29,9 +29,11 @@
 #include <wx/wx.h>
 #endif
 
+#include "filesystem_utils.hpp"
+
 #include "constants.hpp"
 #include <wx/hyperlink.h>
-#include <boost/scoped_ptr.hpp>
+#include <memory>
 
 /**
 * Implements the about dialog box, which displays information about the program.
@@ -53,7 +55,7 @@ public:
       //url->SetPosition(wxPoint(192, 195));
       //url->SetToolTip(_("Visit project homepage, at F.U.T."));
 
-      ht_logo.reset(new wxImage(wxT("images/logo.png"), wxT("image/png")));
+      ht_logo.reset(new wxImage(getResourcePath(("images/logo.png")), wxT("image/png")));
    }
 
    ~HtAbout () {}
@@ -82,7 +84,7 @@ public:
    }
 
 private:
-   boost::scoped_ptr <wxImage> ht_logo;
+   std::unique_ptr <wxImage> ht_logo;
 
    DECLARE_EVENT_TABLE()
 };

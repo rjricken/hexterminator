@@ -37,14 +37,23 @@ bool HtApp::OnInit ()
    // set up language selection system
    loc.Init(wxLANGUAGE_DEFAULT, wxLOCALE_LOAD_DEFAULT);
    wxLocale::AddCatalogLookupPathPrefix("./language");
-   loc.AddCatalog("hexterminator");
+   //loc.AddCatalog("hexterminator");
 
    wxImage::AddHandler(new wxPNGHandler());
 
    doc_manager.reset(new wxDocManager);
-   new wxDocTemplate(doc_manager.get(), "All Files", "*.*", "", "*", "Hex Doc", "Hex View", CLASSINFO(HexDoc), CLASSINFO(HexView));
+   new wxDocTemplate(
+      doc_manager.get(), 
+      "All Files", "*.*", "", "*", 
+      "Hex Doc", 
+      "Hex View", 
+      CLASSINFO(HexDoc), 
+      CLASSINFO(HexView));
 
-   HtMainFrame *frame = new HtMainFrame(wxString::Format("HEXterminator %s", HT_VERSION), wxPoint(0, 0) /*wxDefaultPosition*/, wxSize(/*920*/980, 740));
+   HtMainFrame *frame = new HtMainFrame(
+      wxString::Format("HEXterminator %s", HT_VERSION), 
+      wxPoint(0, 0) /*wxDefaultPosition*/, 
+      wxSize(/*920*/980, 740));
    frame->SetMinSize(wxSize(480, 420));
    frame->Show(true);
 

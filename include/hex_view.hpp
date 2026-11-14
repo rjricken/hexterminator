@@ -40,7 +40,7 @@
 
 class HexView : public wxView
 {
-#ifdef WXDEBUG
+#ifndef NDEBUG
 public:
    void AddToDebugPanel (DebugPanel *dbgPanel);
    void RemoveFromDebugPanel (DebugPanel *dbgPanel);
@@ -104,11 +104,11 @@ public:
    }
 
    /**
-   * Scrolla o documento para a posição especificada.
-   * A posição anterior é nécessária para terminar a direção
+   * Scrolla o documento para a posiï¿½ï¿½o especificada.
+   * A posiï¿½ï¿½o anterior ï¿½ nï¿½cessï¿½ria para terminar a direï¿½ï¿½o
    * do scroll e o consequente posicionamento do cursor, ex.:
-   * ele vai para o topo da view caso a direção de navegação é para cima,
-   * e para o fundo da view caso a direção de navegação seja para baixo.
+   * ele vai para o topo da view caso a direï¿½ï¿½o de navegaï¿½ï¿½o ï¿½ para cima,
+   * e para o fundo da view caso a direï¿½ï¿½o de navegaï¿½ï¿½o seja para baixo.
    */
    void ScrollToPosition (wxPoint from, wxPoint to);
 

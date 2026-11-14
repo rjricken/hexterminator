@@ -17,18 +17,19 @@
  */
 
 #include "hex_doc.hpp"
+#include <cstdint>
 
 IMPLEMENT_DYNAMIC_CLASS(HexDoc, wxDocument)
 
 HexDoc::HexDoc ()
 {
-   wxLogDebug("[HexDoc] created at 0x%X.", reinterpret_cast<int>(this));
+   wxLogDebug("[HexDoc] created at 0x%llX.", reinterpret_cast<uint64_t>(this));
 
 }
 
 HexDoc::~HexDoc ()
 {
-   wxLogDebug("[HexDoc] at 0x%X destroyed.", reinterpret_cast<int>(this));
+   wxLogDebug("[HexDoc] at 0x%llX destroyed.", reinterpret_cast<uint64_t>(this));
 
 }
 

@@ -28,7 +28,7 @@ END_EVENT_TABLE()
 DebugPanel::DebugPanel (wxWindow *parent, wxWindowID id) :
 wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_NONE)
 {
-   wxLogDebug("[DebugPanel] created at 0x%X.", reinterpret_cast<int>(this));
+   wxLogDebug("[DebugPanel] created at 0x%llX.", reinterpret_cast<uint64_t>(this));
 
    /*wxStaticBoxSizer *resultbox_sz = new wxStaticBoxSizer(new wxStaticBox(this, wxID_ANY, _("Results")), wxVERTICAL);
    wxListCtrl *results = new wxListCtrl(this, MonkeyMoore_Results, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_SINGLE_SEL);
@@ -45,7 +45,7 @@ wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER
 
    wxListView *list = new wxListView(this, HT_DebugPanel_List, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_SINGLE_SEL);
    list->InsertColumn(0, "Property", wxLIST_FORMAT_LEFT, 120);
-   list->InsertColumn(1, "Value", wxLIST_AUTOSIZE, 100);
+   list->InsertColumn(1, "Value", wxLIST_FORMAT_LEFT, 100);
 
    panelSz->Add(list, wxSizerFlags(1).Border(wxALL, 5).Expand());
    SetSizer(panelSz);
@@ -56,14 +56,14 @@ wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER
 
 DebugPanel::~DebugPanel ()
 {
-   wxLogDebug("[DebugPanel] at 0x%X destroyed.", reinterpret_cast<int>(this));
+   wxLogDebug("[DebugPanel] at 0x%llX destroyed.", reinterpret_cast<uint64_t>(this));
 }
 
 bool DebugPanel::AddProperty (wxString name, int type, void *dataPtr)
 {
    auto dup = props.find(name);
 
-   // se já existir um elemento com o nome especificado, substitui
+   // se jï¿½ existir um elemento com o nome especificado, substitui
    if (dup != props.end())
       dup->second = std::make_pair(dataPtr, type);
    else
@@ -85,6 +85,10 @@ void DebugPanel::updatePropertyList ()
 {
    wxListView *list = dynamic_cast <wxListView *>(FindWindowById(HT_DebugPanel_List));
 
+   if (!list) {
+      return;
+   }
+
    list->DeleteAllItems();
 
    if (!props.empty())
@@ -92,6 +96,7 @@ void DebugPanel::updatePropertyList ()
       auto itemNum = 0;
       for (auto i = props.begin(); i != props.end(); ++i, ++itemNum)
       {
+         wxLogDebug("Updating property: %s", i->first);
          list->InsertItem(itemNum, i->first);
 
          auto valuePair = i->second;
@@ -108,7 +113,7 @@ void DebugPanel::updatePropertyList ()
                break;
 
             case Type_Long:
-               valueStr = wxString::Format("%d", *static_cast<long *>(valuePair.first));
+               valueStr = wxString::Format("%ld", *static_cast<long *>(valuePair.first));
                break;
 
             case Type_wxPoint: {

@@ -23,6 +23,7 @@
 #include "ht_about.hpp"
 #include "bookmarks_panel.hpp"
 #include "debug_panel.hpp"
+#include "filesystem_utils.hpp"
 
 #include <wx/artprov.h>
 #include <wx/spinctrl.h>
@@ -52,12 +53,12 @@ BEGIN_EVENT_TABLE(HtMainFrame, wxAuiMDIParentFrame)
    EVT_CHAR_HOOK(HtMainFrame::OnKeyDown)
 END_EVENT_TABLE()
 
-#if !defined(__WXMSW__) && !defined(__WXPM__)
-#include "../resources/hterminator.xpm"
-#endif
+//#if !defined(__WXMSW__) && !defined(__WXPM__)
+//   #include "../resources/hterminator.xpm"
+//#endif
 
 HtMainFrame::HtMainFrame (const wxString &title, const wxPoint &pos, const wxSize &size, long flags) :
-   wxAuiMDIParentFrame(0, wxID_ANY, title, pos, size, flags | wxBORDER_NONE | wxFRAME_NO_WINDOW_MENU),
+   wxAuiMDIParentFrame(0, wxID_ANY, title, pos, size, flags /*| wxBORDER_NONE | wxFRAME_NO_WINDOW_MENU*/),
    history(9, HT_FileHistory_Base)
 {
    // logger
@@ -65,13 +66,13 @@ HtMainFrame::HtMainFrame (const wxString &title, const wxPoint &pos, const wxSiz
    wxLog::SetActiveTarget(logger);
 
    aui_manager.SetManagedWindow(this);
-   SetIcon(wxICON(hterminator));
+   //SetIcon(wxICON(hterminator));
 
    HtArtProvider &art = wxGetApp().art_provider;
-   art.Add(wxT("images/common.png"), HTArtId_Common, wxT("image/png"), true, wxSize(16, 15));
-   art.Add(wxT("images/main_tb.png"), HTArtId_MainTb, wxT("image/png"), true, wxSize(16, 16));
-   art.Add(wxT("images/view_tb.png"), HTArtId_ViewTb, wxT("image/png"), true, wxSize(16, 15));
-   art.Add(wxT("images/nav_tb.png"), HTArtId_NavTb, wxT("image/png"), true, wxSize(16, 15));
+   art.Add(getResourcePath(("images/common.png")), HTArtId_Common, wxT("image/png"), true, wxSize(16, 15));
+   art.Add(getResourcePath(wxT("images/main_tb.png")), HTArtId_MainTb, wxT("image/png"), true, wxSize(16, 16));
+   art.Add(getResourcePath(wxT("images/view_tb.png")), HTArtId_ViewTb, wxT("image/png"), true, wxSize(16, 15));
+   art.Add(getResourcePath(wxT("images/nav_tb.png")), HTArtId_NavTb, wxT("image/png"), true, wxSize(16, 15));
 
 #if wxUSE_MENUS
    CreateMenu(art);
@@ -136,7 +137,7 @@ HtMainFrame::HtMainFrame (const wxString &title, const wxPoint &pos, const wxSiz
    //jump_hex->Connect(wxEVT_TEXT, wxCommandEventHandler(HtMainFrame::OnJumpHexTextEnter));
 
 
-#ifdef WXDEBUG
+#ifndef NDEBUG
    DebugPanel *debugPanel = new DebugPanel(this, HT_DebugPanel);
    
    aui_manager.AddPane(debugPanel, wxAuiPaneInfo().Right().PinButton().CloseButton().MinimizeButton()
@@ -152,7 +153,7 @@ HtMainFrame::HtMainFrame (const wxString &title, const wxPoint &pos, const wxSiz
 
    // TEMP -----------------
    //DoOpenFile(wxT("D:/Projects/ricardojricken/trunk/hexterminator/test/1452 - Metroid - Zero Mission (EU) (M5).gba"));
-   DoOpenFile("test/1452 - Metroid - Zero Mission (EU) (M5).gba");
+   //DoOpenFile("test/1452 - Metroid - Zero Mission (EU) (M5).gba");
 }
 
 HtMainFrame::~HtMainFrame ()
@@ -177,7 +178,13 @@ void HtMainFrame::OnFileOpen (wxCommandEvent &WXUNUSED(event))
 void HtMainFrame::OnFileExit (wxCommandEvent &event)
 {
    wxMessageDialog confirm(this, _("Are you sure you want to quit?"), _("HEXterminator"), wxYES_NO | wxYES_DEFAULT);
-   confirm.ShowModal() == wxID_YES ? Close() : event.Skip();
+   if (confirm.ShowModal() == wxID_YES) {
+      Close();
+   }
+   else {
+      event.Skip();
+   }
+   
 }
 
 void HtMainFrame::OnClose (wxCloseEvent &WXUNUSED(event))
@@ -230,8 +237,8 @@ void HtMainFrame::OnUpdateUI (wxUpdateUIEvent &event)
             wxFileOffset off = view->GetCurrentOffset();
 
             event.GetId() == HT_Tool_JumpHex ?
-               event.SetText(wxString::Format("%I64X", off)) :
-               event.SetText(wxString::Format("%I64u", off));
+               event.SetText(wxString::Format("%llX", off)) :
+               event.SetText(wxString::Format("%llu", off));
          }
       }
       break;
@@ -333,7 +340,7 @@ void HtMainFrame::OnNotebookPageChange (wxAuiNotebookEvent &event)
 {
 
 
-#ifdef WXDEBUG
+#ifndef NDEBUG
    wxAuiNotebook *nb = static_cast<wxAuiNotebook *>(event.GetEventObject());
    HexFrame *frame = static_cast<HexFrame *>(nb->GetPage(event.GetSelection()));
 
@@ -388,7 +395,7 @@ void HtMainFrame::DoOpenFile (const wxString &path)
    wxDocManager *docm = wxGetApp().doc_manager.get();
 
    // TODO: fazer as checagens no arquivo antes de tentar abrir.
-   //       Ex: verificar se ele pode ser aberto como leitura/escrita, se o usuário tem permissão etc.
+   //       Ex: verificar se ele pode ser aberto como leitura/escrita, se o usuï¿½rio tem permissï¿½o etc.
 
    // check if the requested file ain't already open
    wxList &docs = docm->GetDocuments();
@@ -396,7 +403,7 @@ void HtMainFrame::DoOpenFile (const wxString &path)
    {
       HexDoc *doc = dynamic_cast <HexDoc *> (*i);
 
-      if (doc->GetFilename() == path)
+      if (doc && doc->GetFilename() == path)
       {
          // it's open already... focus it and we're done
          HexFrame *frame = static_cast<HexView *>(doc->GetFirstView())->GetFrame();
@@ -424,13 +431,15 @@ void HtMainFrame::DoOpenFile (const wxString &path)
       HexFrame *frame = new HexFrame(view, this, wxID_ANY, wxFileNameFromPath(path));
       history.AddFileToHistory(path);
 
-#ifdef WXDEBUG
+#ifndef NDEBUG
       DebugPanel *dbgPanel = dynamic_cast<DebugPanel *>(FindWindowById(HT_DebugPanel));
-      view->AddToDebugPanel(dbgPanel);
+      if (dbgPanel != nullptr) {
+         view->AddToDebugPanel(dbgPanel);
+      }
 #endif
    }
    else // TODO: melhorar essa mensagem de erro.
-      wxMessageBox(wxString::Format("Não foi possível abrir o arquivo\n%s", path), "Erro", wxOK | wxICON_ERROR, this);
+      wxMessageBox(wxString::Format("Error opening file\n%s", path), "Error", wxOK | wxICON_ERROR, this);
 }
 
 void HtMainFrame::CreateMenu (HtArtProvider &art)

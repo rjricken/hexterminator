@@ -40,7 +40,7 @@ HexFrame::HexFrame(HexView *vw, wxAuiMDIParentFrame *parent, wxWindowID id, cons
 wxAuiMDIChildFrame(parent, id, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE | wxVSCROLL | wxHSCROLL | wxALWAYS_SHOW_SB),
 m_view(vw)
 {
-   wxLogDebug("[HexFrame] created at 0x%X.", reinterpret_cast<int>(this));
+   wxLogDebug("[HexFrame] created at 0x%llX.", reinterpret_cast<uint64_t>(this));
 
    wxSize screen = wxGetDisplaySize();
    m_buffer.reset(new wxBitmap(screen.x, screen.y));
@@ -55,7 +55,7 @@ m_view(vw)
 
 HexFrame::~HexFrame()
 {
-   wxLogDebug("[HexFrame] at 0x%X destroyed.", reinterpret_cast<int>(this));
+   wxLogDebug("[HexFrame] at 0x%llX destroyed.", reinterpret_cast<uint64_t>(this));
 }
 
 void HexFrame::OnSize(wxSizeEvent &event)
@@ -116,9 +116,9 @@ void HexFrame::OnLeaveWindow (wxMouseEvent &event)
    m_view->OnLeaveWindow(event);
 }
 
-/* Processa a entrada do teclado quando o frame está com o foco.
-   O evento EVT_CHAR_HOOK é direcionado para cá porque senão outros Event Handlers
-   na hierarquia acabam monopolizando algumas teclas que são usadas na navegação do HexView.
+/* Processa a entrada do teclado quando o frame estï¿½ com o foco.
+   O evento EVT_CHAR_HOOK ï¿½ direcionado para cï¿½ porque senï¿½o outros Event Handlers
+   na hierarquia acabam monopolizando algumas teclas que sï¿½o usadas na navegaï¿½ï¿½o do HexView.
 */
 void HexFrame::OnKeyDown (wxKeyEvent &event)
 {
@@ -159,7 +159,7 @@ void HexFrame::OnKillFocus (wxFocusEvent &event)
       m_view->OnKillFocus(event);
 }
 
-#ifdef WXDEBUG
+#ifndef NDEBUG
 #include "constants.hpp"
 #include "debug_panel.hpp"
 
