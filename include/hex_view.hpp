@@ -63,23 +63,21 @@ public:
       int x = m_edit_char ? CharCol2Pos(m_caretpos.x) : HexCol2Pos(m_caretpos.x);
       int y = (m_caretpos.y - m_start_line) * text_sz.y + m_base.y;
 
-      m_frame->GetCaret()->Move(x, y);
+      m_frame->GetCanvas()->GetCaret()->Move(x, y);
       (m_caretpos.y - m_start_line) >= 0 ? m_frame->ShowCaret() : m_frame->HideCaret();
 
       wxLogStatus(
          "Caret is now %svisible at [%d,%d]/[%d,%d] in the %s area",
-         m_frame->GetCaret()->IsVisible() ? "" : "in",
-         m_caretpos.x, m_caretpos.y, m_frame->GetCaret()->GetPosition().x, m_frame->GetCaret()->GetPosition().y,
+         m_frame->GetCanvas()->GetCaret()->IsVisible() ? "" : "in",
+         m_caretpos.x, 
+         m_caretpos.y, 
+         m_frame->GetCanvas()->GetCaret()->GetPosition().x, 
+         m_frame->GetCanvas()->GetCaret()->GetPosition().y,
          m_edit_char ? "CHAR" : "HEX"
       );
 
-      
-
       //if (y + text_sz.y > m_base.GetBottom())
       //   wxLogStatus("I need to scroll down 1 line");
-
-
-
 
    }
 
@@ -99,7 +97,7 @@ public:
    }
    virtual bool OnClose (bool WXUNUSED(deleteWindow) = true) {
       wxLogDebug("[HexView] ::OnClose");
-      m_frame->OnRemoveFromDebugPanel();
+      //m_frame->OnRemoveFromDebugPanel();
       return true;
    }
 

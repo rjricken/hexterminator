@@ -340,12 +340,12 @@ void HtMainFrame::OnNotebookPageChange (wxAuiNotebookEvent &event)
 {
 
 
-#ifndef NDEBUG
+/* #ifndef NDEBUG
    wxAuiNotebook *nb = static_cast<wxAuiNotebook *>(event.GetEventObject());
    HexFrame *frame = static_cast<HexFrame *>(nb->GetPage(event.GetSelection()));
 
    frame->OnAddToDebugPanel();
-#endif
+#endif */
 }
 
 void HtMainFrame::OnToolsLog (wxCommandEvent &WXUNUSED(event))
@@ -431,12 +431,12 @@ void HtMainFrame::DoOpenFile (const wxString &path)
       HexFrame *frame = new HexFrame(view, this, wxID_ANY, wxFileNameFromPath(path));
       history.AddFileToHistory(path);
 
-#ifndef NDEBUG
+/* #ifndef NDEBUG
       DebugPanel *dbgPanel = dynamic_cast<DebugPanel *>(FindWindowById(HT_DebugPanel));
       if (dbgPanel != nullptr) {
          view->AddToDebugPanel(dbgPanel);
       }
-#endif
+#endif */
    }
    else // TODO: melhorar essa mensagem de erro.
       wxMessageBox(wxString::Format("Error opening file\n%s", path), "Error", wxOK | wxICON_ERROR, this);

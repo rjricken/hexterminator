@@ -36,20 +36,21 @@
 
 class HexView;
 
-class HexCanvas : public wxScrolledWindow {
+class HexCanvas : public wxScrolledWindow
+{
 public:
    HexCanvas(wxWindow *parent, HexView *view);
    virtual ~HexCanvas();
 
-   void OnPaint (wxPaintEvent &event);
-   void OnEraseBackground (wxEraseEvent &event);
-   void OnSize (wxSizeEvent &event);
-   void OnLeftDown (wxMouseEvent &event);
-   void OnLeftUp (wxMouseEvent &event);
-   void OnMouseWheel (wxMouseEvent &event);
-   void OnMotion (wxMouseEvent &event);
-   void OnLeaveWindow (wxMouseEvent &event);
-   void OnKeyDown (wxKeyEvent &event);
+   void OnPaint(wxPaintEvent &event);
+   void OnEraseBackground(wxEraseEvent &event);
+   void OnSize(wxSizeEvent &event);
+   void OnLeftDown(wxMouseEvent &event);
+   void OnLeftUp(wxMouseEvent &event);
+   void OnMouseWheel(wxMouseEvent &event);
+   void OnMotion(wxMouseEvent &event);
+   void OnLeaveWindow(wxMouseEvent &event);
+   void OnKeyDown(wxKeyEvent &event);
    void OnScroll(wxScrollWinEvent &event);
    void OnSetFocus(wxFocusEvent &event);
    void OnKillFocus(wxFocusEvent &event);
@@ -57,57 +58,57 @@ public:
 private:
    HexView *m_view;
    std::unique_ptr<wxBitmap> m_buffer;
-
-   DECLARE_EVENT_TABLE();
-}
-
-
-class HexFrame : public wxAuiMDIChildFrame {
-public:
-   HexFrame (HexView *view, wxAuiMDIParentFrame *parent, wxWindowID id, const wxString &title);
-   virtual ~HexFrame ();
-
-   HexView *GetView () const { return m_view; }
-   void SetView (HexView *view) { m_view = view; }
-
-   HexCanvas *GetCanvas() const { return m_canvas; }
- 
-   // will be used to adjust the caret when selection gots implemented
-   void SetSel (wxPoint &start, wxPoint &end);
-
-   void ShowCaret (bool show = true)
-   {
-      if (show && !GetCaret()->IsVisible())
-         GetCaret()->Show();//, wxLogStatus("Caret is now visible");
-      else if (!show && GetCaret()->IsVisible())
-         GetCaret()->Hide();//, wxLogStatus("Caret is now hidden");
-   }
-
-   void HideCaret () {
-      ShowCaret(false);
-   }
-
-   // -- Event handlers
-   void OnPaint (wxPaintEvent &event);
-   void OnEraseBackground (wxEraseEvent &event);
-   void OnSize (wxSizeEvent &event);
-   void OnLeftDown (wxMouseEvent &event);
-   void OnLeftUp (wxMouseEvent &event);
-   void OnMouseWheel (wxMouseEvent &event);
-   void OnMotion (wxMouseEvent &event);
-   void OnLeaveWindow (wxMouseEvent &event);
-   void OnKeyDown (wxKeyEvent &event);
-   void OnScroll(wxScrollWinEvent &event);
-   void OnSetFocus(wxFocusEvent &event);
-   void OnKillFocus(wxFocusEvent &event);
-
-private:
-   std::unique_ptr<wxBitmap> m_buffer;
-   HexView *m_view;
-   HexCanvas  *m_canvas;
-   wxScrolled
 
    DECLARE_EVENT_TABLE()
 };
 
-#endif //~HT_HEXFRAME_HPP
+class HexFrame : public wxAuiMDIChildFrame
+{
+public:
+   HexFrame(HexView *view, wxAuiMDIParentFrame *parent, wxWindowID id, const wxString &title);
+   virtual ~HexFrame();
+
+   HexView *GetView() const { return m_view; }
+   void SetView(HexView *view) { m_view = view; }
+
+   HexCanvas *GetCanvas() const { return m_canvas; }
+
+   // will be used to adjust the caret when selection gots implemented
+   void SetSel(wxPoint &start, wxPoint &end);
+
+   void ShowCaret(bool show = true)
+   {
+      if (show && !GetCanvas()->GetCaret()->IsVisible())
+         GetCanvas()->GetCaret()->Show(); //, wxLogStatus("Caret is now visible");
+      else if (!show && GetCanvas()->GetCaret()->IsVisible())
+         GetCanvas()->GetCaret()->Hide(); //, wxLogStatus("Caret is now hidden");
+   }
+
+   void HideCaret()
+   {
+      ShowCaret(false);
+   }
+
+   // -- Event handlers
+   void OnPaint(wxPaintEvent &event);
+   void OnEraseBackground(wxEraseEvent &event);
+   void OnSize(wxSizeEvent &event);
+   void OnLeftDown(wxMouseEvent &event);
+   void OnLeftUp(wxMouseEvent &event);
+   void OnMouseWheel(wxMouseEvent &event);
+   void OnMotion(wxMouseEvent &event);
+   void OnLeaveWindow(wxMouseEvent &event);
+   void OnKeyDown(wxKeyEvent &event);
+   void OnScroll(wxScrollWinEvent &event);
+   void OnSetFocus(wxFocusEvent &event);
+   void OnKillFocus(wxFocusEvent &event);
+
+private:
+   std::unique_ptr<wxBitmap> m_buffer;
+   HexView *m_view;
+   HexCanvas *m_canvas;
+
+   DECLARE_EVENT_TABLE()
+};
+
+#endif // HT_HEXFRAME_HPP

@@ -19,37 +19,137 @@
 #include "hex_frame.hpp"
 #include "hex_view.hpp"
 #include <wx/dcbuffer.h>
+#include <wx/sizer.h>
+
+BEGIN_EVENT_TABLE(HexCanvas, wxScrolledWindow)
+   EVT_PAINT(HexCanvas::OnPaint)
+   EVT_ERASE_BACKGROUND(HexCanvas::OnEraseBackground)
+   EVT_LEFT_DOWN(HexCanvas::OnLeftDown)
+   EVT_LEFT_UP(HexCanvas::OnLeftUp)
+   EVT_MOTION(HexCanvas::OnMotion)
+   EVT_LEAVE_WINDOW(HexCanvas::OnLeaveWindow)
+   EVT_KEY_DOWN(HexCanvas::OnKeyDown)
+   EVT_CHAR_HOOK(HexCanvas::OnKeyDown)
+   EVT_SIZE(HexCanvas::OnSize)
+   EVT_MOUSEWHEEL(HexCanvas::OnMouseWheel)
+   //EVT_SCROLLWIN(HexCanvas::OnScroll)
+   EVT_SET_FOCUS(HexCanvas::OnSetFocus)
+   EVT_KILL_FOCUS(HexCanvas::OnKillFocus)
+END_EVENT_TABLE()
+
+HexCanvas::HexCanvas(wxWindow *parent, HexView *view)
+:  wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL | wxHSCROLL | wxALWAYS_SHOW_SB | wxWANTS_CHARS),
+   m_view(view) {
+   wxSize screen = wxGetDisplaySize();
+   m_buffer.reset(new wxBitmap(screen.x, screen.y));
+
+   wxCaret *caret = new wxCaret(this, 2, 16);
+   caret->Show();
+   SetCaret(caret);
+}
+
+HexCanvas::~HexCanvas() {}
+
+void HexCanvas::OnPaint(wxPaintEvent &WXUNUSED(event)) {
+   wxBufferedPaintDC bdc(this, *m_buffer);
+   if (m_view) {
+      m_view->OnDraw(&bdc);
+   }
+}
+
+void HexCanvas::OnSize(wxSizeEvent &event) {
+   if (m_view) {
+      m_view->OnSize(event);
+   }
+   Refresh();
+   Update();
+}
+
+// Anti-flicker
+void HexCanvas::OnEraseBackground(wxEraseEvent &WXUNUSED(event)) {}
+
+void HexCanvas::OnLeftDown(wxMouseEvent &event) {
+   SetFocus();
+   if (m_view) {
+      m_view->OnLeftDown(event);
+   }
+}
+
+void HexCanvas::OnLeftUp(wxMouseEvent &event) {
+   if (m_view) {
+      m_view->OnLeftUp(event);
+   }
+}
+
+void HexCanvas::OnMotion(wxMouseEvent &event) {
+   if (m_view) {
+      m_view->OnMotion(event);
+   }
+}
+
+void HexCanvas::OnLeaveWindow(wxMouseEvent &event) {
+   if (m_view) {
+      m_view->OnLeaveWindow(event);
+   }
+}
+
+void HexCanvas::OnMouseWheel(wxMouseEvent &event) {
+   if (event.GetWheelAxis() == 0 && m_view) {
+      int lines = event.GetLinesPerAction();
+      int count = event.GetWheelRotation() / event.GetWheelDelta();
+      count *= lines;
+      
+      m_view->DoMouseWheel(count);
+   }
+}
+
+void HexCanvas::OnKeyDown(wxKeyEvent &event) {
+   if (event.GetKeyCode() == WXK_TAB && event.ControlDown()) {
+      event.Skip();
+      return;
+   }
+
+   if (m_view) {
+      m_view->OnKeyDown(event);
+   }
+}
+
+void HexCanvas::OnSetFocus(wxFocusEvent &event) {
+   if (m_view) {
+      m_view->OnSetFocus(event);
+   }
+}
+
+void HexCanvas::OnKillFocus(wxFocusEvent &event) {
+   if (m_view) {
+      m_view->OnKillFocus(event);
+   }
+}
 
 BEGIN_EVENT_TABLE(HexFrame, wxAuiMDIChildFrame)
-   EVT_PAINT(HexFrame::OnPaint)
-   EVT_ERASE_BACKGROUND(HexFrame::OnEraseBackground)
-   EVT_LEFT_DOWN(HexFrame::OnLeftDown)
-   EVT_LEFT_UP(HexFrame::OnLeftUp)
-   EVT_MOTION(HexFrame::OnMotion)
-   EVT_LEAVE_WINDOW(HexFrame::OnLeaveWindow)
-   EVT_KEY_DOWN(HexFrame::OnKeyDown)
-   EVT_CHAR_HOOK(HexFrame::OnKeyDown)
-   EVT_SIZE(HexFrame::OnSize)
-   EVT_MOUSEWHEEL(HexFrame::OnMouseWheel)
-   EVT_SCROLLWIN(HexFrame::OnScroll)
-   EVT_SET_FOCUS(HexFrame::OnSetFocus)
-   EVT_KILL_FOCUS(HexFrame::OnKillFocus)
 END_EVENT_TABLE()
 
 HexFrame::HexFrame(HexView *vw, wxAuiMDIParentFrame *parent, wxWindowID id, const wxString &title):
-wxAuiMDIChildFrame(parent, id, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE | wxVSCROLL | wxHSCROLL | wxALWAYS_SHOW_SB),
+wxAuiMDIChildFrame(parent, id, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE),
 m_view(vw)
 {
    wxLogDebug("[HexFrame] created at 0x%llX.", reinterpret_cast<uint64_t>(this));
 
-   wxSize screen = wxGetDisplaySize();
-   m_buffer.reset(new wxBitmap(screen.x, screen.y));
+   m_canvas = new HexCanvas(this, vw);
+   wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+   sizer->Add(m_canvas, 1, wxEXPAND);
+   SetSizer(sizer);
 
-    // -- Caret Creation
-   wxCaret *caret = new wxCaret(this, 2, 16);
-   caret->Show();
+   m_canvas->Bind(wxEVT_SCROLLWIN_TOP, &HexView::OnScroll, m_view);
+   m_canvas->Bind(wxEVT_SCROLLWIN_BOTTOM, &HexView::OnScroll, m_view);
+   m_canvas->Bind(wxEVT_SCROLLWIN_LINEUP, &HexView::OnScroll, m_view);
+   m_canvas->Bind(wxEVT_SCROLLWIN_LINEDOWN, &HexView::OnScroll, m_view);
+   m_canvas->Bind(wxEVT_SCROLLWIN_PAGEUP, &HexView::OnScroll, m_view);
+   m_canvas->Bind(wxEVT_SCROLLWIN_PAGEDOWN, &HexView::OnScroll, m_view);
+   m_canvas->Bind(wxEVT_SCROLLWIN_THUMBTRACK, &HexView::OnScroll, m_view);
+   m_canvas->Bind(wxEVT_SCROLLWIN_THUMBRELEASE, &HexView::OnScroll, m_view);
 
-   SetCaret(caret);
+  
    m_view->SetFrame(this);
 }
 
@@ -159,7 +259,7 @@ void HexFrame::OnKillFocus (wxFocusEvent &event)
       m_view->OnKillFocus(event);
 }
 
-#ifndef NDEBUG
+/*#ifndef NDEBUG
 #include "constants.hpp"
 #include "debug_panel.hpp"
 
@@ -176,4 +276,4 @@ void HexFrame::OnRemoveFromDebugPanel ()
    if (dbgPanel)
       GetView()->RemoveFromDebugPanel(dbgPanel);
 }
-#endif
+#endif*/
