@@ -31,7 +31,7 @@ build-release:
 
 # runs the program in release mode
 run-release: build-release
-    ./build-release/src/gui/monkey-moore-gui
+    ./build-release/hexterminator
 
 # Utils
 

@@ -16,131 +16,106 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+#ifdef HT_DEBUG_PANEL_ENABLED
+
 #include "debug_panel.hpp"
 #include "constants.hpp"
 
-
-BEGIN_EVENT_TABLE(DebugPanel, wxPanel)
-   EVT_TIMER(HT_DebugPanel_UpdateTimer, DebugPanel::OnUpdateTimer)
-END_EVENT_TABLE()
-
-
-DebugPanel::DebugPanel (wxWindow *parent, wxWindowID id) :
-wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_NONE)
+DebugPanel::DebugPanel(wxWindow *parent, wxWindowID id)
+    : wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_NONE),
+      m_watches(std::make_shared<WatchMap>())
 {
-   wxLogDebug("[DebugPanel] created at 0x%llX.", reinterpret_cast<uint64_t>(this));
+   m_list = new wxListView(this, HT_DebugPanel_List, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_SINGLE_SEL);
+   m_list->InsertColumn(0, "Property", wxLIST_FORMAT_LEFT, 200);
+   m_list->InsertColumn(1, "Value", wxLIST_FORMAT_LEFT, 130);
 
-   /*wxStaticBoxSizer *resultbox_sz = new wxStaticBoxSizer(new wxStaticBox(this, wxID_ANY, _("Results")), wxVERTICAL);
-   wxListCtrl *results = new wxListCtrl(this, MonkeyMoore_Results, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_SINGLE_SEL);
-   wxCheckBox *show_all = new wxCheckBox(this, MonkeyMoore_AllResults, _(" Show repeated results"));
-   resultbox_sz->Add(show_all, wxSizerFlags().Left().Border(wxLEFT, 5));
-   resultbox_sz->Add(results, wxSizerFlags(1).Top().Border(wxALL, 4).Expand());
-   resultbox_sz->Add(resultopt_sz, wxSizerFlags().Border(wxALL, 2).Expand());
+   auto *sizer = new wxBoxSizer(wxVERTICAL);
+   sizer->Add(m_list, wxSizerFlags(1).Border(wxALL, 5).Expand());
+   SetSizer(sizer);
 
-   results->InsertColumn(0, _("Offset"));
-   results->InsertColumn(1, _("Values"), wxLIST_FORMAT_LEFT, 90);
-   results->InsertColumn(2, _("Preview"), wxLIST_FORMAT_LEFT, 200);*/
-
-   wxBoxSizer *panelSz = new wxBoxSizer(wxVERTICAL);
-
-   wxListView *list = new wxListView(this, HT_DebugPanel_List, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_SINGLE_SEL);
-   list->InsertColumn(0, "Property", wxLIST_FORMAT_LEFT, 120);
-   list->InsertColumn(1, "Value", wxLIST_FORMAT_LEFT, 100);
-
-   panelSz->Add(list, wxSizerFlags(1).Border(wxALL, 5).Expand());
-   SetSizer(panelSz);
-
-   updateTimer.reset(new wxTimer(GetEventHandler(), HT_DebugPanel_UpdateTimer));
-   updateTimer->Start(100);
+   m_timer = std::make_unique<wxTimer>(this, HT_DebugPanel_UpdateTimer);
+   Bind(wxEVT_TIMER, &DebugPanel::OnUpdateTimer, this, HT_DebugPanel_UpdateTimer);
+   StartUpdateTimer();
 }
 
-DebugPanel::~DebugPanel ()
+DebugPanel::~DebugPanel()
 {
-   wxLogDebug("[DebugPanel] at 0x%llX destroyed.", reinterpret_cast<uint64_t>(this));
+   StopUpdateTimer();
 }
 
-bool DebugPanel::AddProperty (wxString name, int type, void *dataPtr)
+DebugPanel::Watch DebugPanel::AddWatch(const wxString &name, Getter getter)
 {
-   auto dup = props.find(name);
+   const std::uint64_t id = m_nextId++;
 
-   // se j� existir um elemento com o nome especificado, substitui
-   if (dup != props.end())
-      dup->second = std::make_pair(dataPtr, type);
-   else
+   m_watches->insert_or_assign(name, Entry{std::move(getter), wxString(), id});
+
+   return Watch(m_watches, name, id);
+}
+
+void DebugPanel::StartUpdateTimer(int intervalMs)
+{
+   if (m_timer)
    {
-      auto ret = props.insert(std::make_pair(name, std::make_pair(dataPtr, type)));
-      return ret.second;
+      m_timer->Start(intervalMs);
    }
-
-   return true;
 }
 
-bool DebugPanel::RemoveProperty (wxString name)
+void DebugPanel::StopUpdateTimer()
 {
-   auto count = props.erase(name);
-   return count ? true : false;
-}
-
-void DebugPanel::updatePropertyList ()
-{
-   wxListView *list = dynamic_cast <wxListView *>(FindWindowById(HT_DebugPanel_List));
-
-   if (!list) {
-      return;
-   }
-
-   list->DeleteAllItems();
-
-   if (!props.empty())
+   if (m_timer)
    {
-      auto itemNum = 0;
-      for (auto i = props.begin(); i != props.end(); ++i, ++itemNum)
+      m_timer->Stop();
+   }
+}
+
+void DebugPanel::OnUpdateTimer(wxTimerEvent &WXUNUSED(event))
+{
+   updateList();
+}
+
+void DebugPanel::updateList()
+{
+   bool rebuild = m_list->GetItemCount() != static_cast<long>(m_watches->size());
+
+   if (!rebuild)
+   {
+      long row = 0;
+      for (const auto &kv : *m_watches)
       {
-         wxLogDebug("Updating property: %s", i->first);
-         list->InsertItem(itemNum, i->first);
-
-         auto valuePair = i->second;
-         wxString valueStr;
-
-         switch (valuePair.second)
+         if (m_list->GetItemText(row++) != kv.first)
          {
-            case Type_Bool:
-               valueStr = *static_cast <bool *>(valuePair.first) ? "true" : "false";
-               break;
-
-            case Type_Int:
-               valueStr = wxString::Format("%d", *static_cast<int *>(valuePair.first));
-               break;
-
-            case Type_Long:
-               valueStr = wxString::Format("%ld", *static_cast<long *>(valuePair.first));
-               break;
-
-            case Type_wxPoint: {
-               wxPoint *valuePtr = static_cast<wxPoint *>(valuePair.first);
-               valueStr = wxString::Format("(%d,%d)", valuePtr->x, valuePtr->y);
-               break;
-            }
-
-            case Type_wxSize: {
-               wxSize *valuePtr = static_cast<wxSize *>(valuePair.first);
-               valueStr = wxString::Format("(%dx%d)", valuePtr->x, valuePtr->y);
-               break;
-            }
-
-            case Type_wxRect: {
-               wxRect *valuePtr = static_cast<wxRect *>(valuePair.first);
-               valueStr = wxString::Format(
-                  "(%d,%d,%d,%d)", valuePtr->x, valuePtr->y, valuePtr->width, valuePtr->height
-               );
-               break;
-            }
-
-            default:
-               valueStr = "<type not supported>";
+            rebuild = true;
+            break;
          }
-
-         list->SetItem(itemNum, 1, valueStr);
       }
    }
+
+   if (rebuild)
+   {
+      m_list->DeleteAllItems();
+
+      long row = 0;
+      for (auto &kv : *m_watches)
+      {
+         m_list->InsertItem(row++, kv.first);
+         kv.second.last.clear();
+      }
+   }
+
+   long row = 0;
+   for (auto &kv : *m_watches)
+   {
+      Entry &entry = kv.second;
+      wxString now = entry.get();
+
+      if (rebuild || now != entry.last)
+      {
+         m_list->SetItem(row, 1, now);
+         entry.last = std::move(now);
+      }
+
+      ++row;
+   }
 }
+
+#endif

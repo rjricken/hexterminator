@@ -71,8 +71,7 @@ enum
    HT_Tool_JumpHex,
    HT_Tool_JumpDec,
 
-#ifdef WXDEBUG
-   // debug panel
+#ifdef HT_DEBUG_PANEL_ENABLED
    HT_DebugPanel,
    HT_DebugPanel_List,
    HT_DebugPanel_UpdateTimer,
@@ -86,7 +85,7 @@ enum
 /*----------------------------------------------------------*
  * HtArtProvider Art Ids                                    *
  *----------------------------------------------------------*/
-#define HTArtId_MainTb  wxART_MAKE_ART_ID(HTArtId_MainTb)
+#define HTArtId_MainTb wxART_MAKE_ART_ID(HTArtId_MainTb)
 enum
 {
    HTArt_New,
@@ -107,20 +106,20 @@ enum
    HTArt_RedoGr
 };
 
-#define HTArtId_NavTb  wxART_MAKE_ART_ID(HTArtId_NavTb)
+#define HTArtId_NavTb wxART_MAKE_ART_ID(HTArtId_NavTb)
 enum
 {
    HTArt_SearchBack,
    HTArt_SearchForw
 };
 
-#define HTArtId_ViewTb  wxART_MAKE_ART_ID(HTArtId_ViewTb)
+#define HTArtId_ViewTb wxART_MAKE_ART_ID(HTArtId_ViewTb)
 enum
 {
    HTArt_AddTable
 };
 
-#define HTArtId_Common   wxART_MAKE_ART_ID(HTArtId_Icons)
+#define HTArtId_Common wxART_MAKE_ART_ID(HTArtId_Icons)
 enum
 {
    HTArt_Close,

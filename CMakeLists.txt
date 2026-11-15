@@ -26,7 +26,10 @@ target_include_directories(
 )
 
 target_link_libraries(hexterminator PRIVATE ${wxWidgets_LIBRARIES})
-target_compile_definitions(hexterminator PRIVATE ${wxWidgets_DEFINITIONS})
+target_compile_definitions(hexterminator PRIVATE
+   ${wxWidgets_DEFINITIONS}
+   $<$<CONFIG:Debug>:HT_DEBUG_PANEL_ENABLED>
+)
 
 add_custom_command(
    TARGET hexterminator POST_BUILD

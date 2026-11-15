@@ -28,55 +28,63 @@
 #endif
 
 #include <wx/aui/aui.h>
-#include <wx/docview.h> 
+#include <wx/docview.h>
 #include "ht_artprovider.hpp"
 #include "hex_view.hpp"
+
+#ifdef HT_DEBUG_PANEL_ENABLED
+#include "debug_panel.hpp"
+#endif
 
 class HtMainFrame : public wxAuiMDIParentFrame
 {
 public:
-   HtMainFrame (const wxString &title, const wxPoint &pos, const wxSize &size, long flags = wxDEFAULT_FRAME_STYLE);
-   ~HtMainFrame ();
+   HtMainFrame(const wxString &title, const wxPoint &pos, const wxSize &size, long flags = wxDEFAULT_FRAME_STYLE);
+   ~HtMainFrame();
 
-   void OnEraseBackground (wxEraseEvent &event);
-   void OnFileOpen (wxCommandEvent &event);
-   void OnFileExit (wxCommandEvent &event);
-   void OnViewStatusBar (wxCommandEvent &event);
-   void OnToolsLog (wxCommandEvent &event);
-   void OnHelpAbout (wxCommandEvent &event);
-   void OnClose (wxCloseEvent &event);
-   void OnUpdateUI (wxUpdateUIEvent &event);
-   void OnNotebookPageClose (wxAuiNotebookEvent &event);
-   void OnNotebookPageChange (wxAuiNotebookEvent &event);
-   void OnEditUndoDropDown (wxAuiToolBarEvent &event);
-   void OnFileOpenDropDown (wxAuiToolBarEvent &event);
-   void OnRecentFilesSelected (wxCommandEvent &event);
+   void OnEraseBackground(wxEraseEvent &event);
+   void OnFileOpen(wxCommandEvent &event);
+   void OnFileExit(wxCommandEvent &event);
+   void OnViewStatusBar(wxCommandEvent &event);
+   void OnToolsLog(wxCommandEvent &event);
+   void OnHelpAbout(wxCommandEvent &event);
+   void OnClose(wxCloseEvent &event);
+   void OnUpdateUI(wxUpdateUIEvent &event);
+   void OnNotebookPageClose(wxAuiNotebookEvent &event);
+   // void OnNotebookPageChange(wxAuiNotebookEvent &event);
+   void OnEditUndoDropDown(wxAuiToolBarEvent &event);
+   void OnFileOpenDropDown(wxAuiToolBarEvent &event);
+   void OnRecentFilesSelected(wxCommandEvent &event);
 
-   void OnKeyDown (wxKeyEvent &event);
-   void OnJumpHexTextEnter (wxCommandEvent &event);
+#ifdef HT_DEBUG_PANEL_ENABLED
+   void OnViewDebugPanel(wxCommandEvent &event);
+#endif
 
-   void DoOpenFile (const wxString &path);
+   void OnKeyDown(wxKeyEvent &event);
+   void OnJumpHexTextEnter(wxCommandEvent &event);
 
-   /**
-   * Returns a pointer to the active document view, if there is one.
-   * @return Pointer to the active HexView instance if any, 0 otherwise.
-   */
-   HexView *GetActiveView () const {
+   void DoOpenFile(const wxString &path);
+
+   HexView *GetActiveView() const
+   {
       wxAuiNotebook *nb = GetNotebook();
 
-      return nb->GetPageCount() ?
-         static_cast<HexFrame *>(nb->GetPage(nb->GetSelection()))->GetView() : 0;
+      return nb->GetPageCount() ? static_cast<HexFrame *>(nb->GetPage(nb->GetSelection()))->GetView() : 0;
    }
 
 private:
-   void CreateMenu (HtArtProvider &art);
+   void CreateMenu(HtArtProvider &art);
 
    wxAuiManager aui_manager;
    wxStatusBar *statusbar;
    wxLogWindow *logger;
    wxFileHistory history;
 
+#ifdef HT_DEBUG_PANEL_ENABLED
+   DebugPanel *m_debugPanel = nullptr;
+#endif
+
    DECLARE_EVENT_TABLE()
 };
 
-#endif //~HT_MAINFRAME_HPP
+#endif // HT_MAINFRAME_HPP
