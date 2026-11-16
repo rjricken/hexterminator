@@ -112,14 +112,22 @@ public:
 private:
    void RecalcDisplay();
    void RecalcViewState();
+
+   void SetupDC(wxDC *dc) const;
    void DrawBackground(wxDC *dc) const;
-
-   void DrawVerticalLine(wxDC &dc, const int x, const int y1, const int y2) const { dc.DrawLine(x, y1, x, y2); }
-
+   void DrawSeparators(wxDC *dc) const;
+   void DrawRuler(wxDC *dc) const;
+   void DrawCursorHighlight(wxDC *dc) const;
+   void DrawMouseHighlight(wxDC *dc) const;
+   void DrawLines(wxDC *dc) const;
    void DrawCaret(wxDC *dc) const;
 
+   void DrawVerticalLine(wxDC &dc, const int x, const int y1, const int y2) const { dc.DrawLine(x, y1, x, y2); }
+   void DrawPositionIndicator(wxDC *dc, int view_row, int col, bool filled) const;
+
    enum class CaretCellStyle { Filled, Outline };
-   void DrawCaretCell(wxDC *dc, int x, int y, int w, const wxString &text, const wxColour &clr, CaretCellStyle style) const;
+   void DrawCaretCell(
+      wxDC *dc, int x, int y, int w, const wxString &text, const wxColour &clr, CaretCellStyle style) const;
 
    void MovePos(int key, bool ctrl_down, bool shift_down, bool alt_down);
 

@@ -262,130 +262,110 @@ No HexEdit, a renderiza��o � composta das seguintes etapas:
 + invers�o das colunas que estiverem selecionadas
 */
 void HexView::OnDraw(wxDC *dc) {
-#if 1
-   auto start = std::chrono::system_clock::now();
-#endif
-
-   // -- setup
-   wxFont &font = *wxTheFontList->FindOrCreateFont(
-      12, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Courier"));
-   dc->SetFont(font);
-
    wxASSERT(m_columns > 0);
    wxASSERT(m_group_by > 0);
 
    if (!view_data) {
       HexDoc *doc = (HexDoc *)GetDocument();
-
       view_data = new unsigned char[doc->length()];
       view_data_sz = doc->GetData(view_data, doc->length());
-
       RecalcDisplay();
    }
 
    wxSize client_sz(m_frame->GetCanvas()->GetClientSize());
    int rulerHeight = m_show_ruler ? text_sz.y + 4 : 0;
    m_base = wxRect(0, rulerHeight, client_sz.x, client_sz.y - rulerHeight);
-   // m_base = wxRect(0, m_show_ruler ? text_sz.y + 4 : 0, client_sz.x, client_sz.y + (m_show_ruler ? text_sz.y + 4 :
-   // 0));
 
-   // calculate the amount of lines we need to display and the amount of lines used by our file
-   // TODO: ensure that every change in the window updates those 2 values
-   // m_numlines = static_cast <int> (ceil(float(view_data_sz) / m_columns)) + (view_data_sz % m_columns ? 0 : 1);
-   // m_numshown = static_cast <int> (ceil(float(m_base.height) / text_sz.y));
-
-   // which rows in the file context represent the rows displayed in the view
    m_start_line = m_scrollpos.y;
    m_end_line = std::min(m_start_line + m_numshown, m_numlines);
 
-   unsigned char *data_ptr = view_data + m_start_line * m_columns;
-
-   // -- rendering
+   SetupDC(dc);
    DrawBackground(dc);
+   DrawSeparators(dc);
+   DrawRuler(dc);
+   DrawCursorHighlight(dc);
+   DrawMouseHighlight(dc);
+   DrawLines(dc);
+   DrawCaret(dc);
+}
 
-   // display area lines
+void HexView::SetupDC(wxDC *dc) const {
+   wxFont &font = *wxTheFontList->FindOrCreateFont(
+      12, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Courier"));
+   dc->SetFont(font);
+}
+
+void HexView::DrawSeparators(wxDC *dc) const {
    dc->SetPen(wxPen(line_clr));
    DrawVerticalLine(*dc, m_addr_width * text_sz.x, m_base.y - 3, m_base.GetBottom());
    DrawVerticalLine(*dc, CharCol2Pos(0) - text_sz.x / 2, m_base.y - 3, m_base.GetBottom());
    DrawVerticalLine(*dc, CharCol2Pos(m_columns) + text_sz.x / 2, m_base.y - 3, m_base.GetBottom());
+}
 
-   // display current caret position highlight
-   if (!m_mouse_down && m_show_cursor_pos) {
-      dc->SetPen(wxPen(addrhex_clr));
-      dc->SetBrush(wxBrush(addrhl_clr));
+void HexView::DrawRuler(wxDC *dc) const {
+   if (!m_show_ruler)
+      return;
 
-      if ((m_caretpos.y - m_start_line) >= 0)
-         dc->DrawRectangle(
-            0, m_base.y + (m_caretpos.y - m_start_line) * text_sz.y, m_addr_width * text_sz.x - 1, text_sz.y);
+   wxSize client_sz(m_frame->GetCanvas()->GetClientSize());
+   dc->SetPen(wxPen(line_clr));
+   dc->DrawLine(m_addr_width * text_sz.x, m_base.y - 3, client_sz.x, m_base.y - 3);
 
-      if (m_show_ruler) {
-         dc->DrawRectangle(CharCol2Pos(m_caretpos.x), 0, text_sz.x + 1, text_sz.y);
-         dc->DrawRectangle(HexCol2Pos(m_caretpos.x), 0, 2 * text_sz.x + 1, text_sz.y);
-      }
+   dc->SetTextForeground(addrhex_clr);
+   dc->SetPen(wxPen(addrhex_clr));
+
+   for (int i = 0; i < m_columns; i++) {
+      dc->DrawText(wxString::Format(wxT("%02X"), i), HexCol2Pos(i), 0);
+      dc->DrawText(wxString::Format(wxT("%02X"), i).substr(1), CharCol2Pos(i), 0);
    }
+}
 
-   // display the horizontal ruler
+void HexView::DrawPositionIndicator(wxDC *dc, int view_row, int col, bool filled) const {
+   dc->SetPen(wxPen(addrhex_clr));
+   dc->SetBrush(filled ? wxBrush(addrhl_clr) : *wxTRANSPARENT_BRUSH);
+
+   if (view_row >= 0 && (view_row + m_start_line) < m_numlines)
+      dc->DrawRectangle(0, m_base.y + view_row * text_sz.y, m_addr_width * text_sz.x - 1, text_sz.y);
+
    if (m_show_ruler) {
-      dc->SetPen(wxPen(line_clr));
-      dc->DrawLine(m_addr_width * text_sz.x, m_base.y - 3, client_sz.x, m_base.y - 3);
-
-      dc->SetTextForeground(addrhex_clr);
-      dc->SetPen(wxPen(addrhex_clr));
-
-      for (int i = 0; i < m_columns; i++) {
-         dc->DrawText(wxString::Format(wxT("%02X"), i), HexCol2Pos(i), 0);
-         dc->DrawText(wxString::Format(wxT("%02X"), i).substr(1), CharCol2Pos(i), 0);
-      }
+      dc->DrawRectangle(HexCol2Pos(col), 0, 2 * text_sz.x + 1, text_sz.y);
+      dc->DrawRectangle(CharCol2Pos(col), 0, text_sz.x + 1, text_sz.y);
    }
+}
 
-   // display which row is currently under the mouse pointer
-   if (m_mouse_over != wxPoint(-1, -1) && m_show_mouse_pos) {
-      dc->SetPen(wxPen(addrhex_clr));
-      dc->SetBrush(*wxTRANSPARENT_BRUSH);
+void HexView::DrawCursorHighlight(wxDC *dc) const {
+   if (m_mouse_down || !m_show_cursor_pos)
+      return;
 
-      // row
-      if ((m_mouse_over.y + m_start_line) < m_numlines)
-         dc->DrawRectangle(0, m_base.y + m_mouse_over.y * text_sz.y, m_addr_width * text_sz.x - 1, text_sz.y);
+   DrawPositionIndicator(dc, m_caretpos.y - m_start_line, m_caretpos.x, /*filled=*/true);
+}
 
-      // columns
-      if (m_show_ruler) {
-         dc->DrawRectangle(CharCol2Pos(m_mouse_over.x), 0, text_sz.x + 1, text_sz.y);
-         dc->DrawRectangle(HexCol2Pos(m_mouse_over.x), 0, 2 * text_sz.x + 1, text_sz.y);
-      }
-   }
+void HexView::DrawMouseHighlight(wxDC *dc) const {
+   if (m_mouse_over == wxPoint(-1, -1) || !m_show_mouse_pos)
+      return;
 
-   // display each line, from top to bottom
+   DrawPositionIndicator(dc, m_mouse_over.y, m_mouse_over.x, /*filled=*/false);
+}
+
+void HexView::DrawLines(wxDC *dc) const {
    for (int i = m_start_line; i < m_end_line; i++) {
-      // display formatted offset
-      wxString offset = wxString::Format(m_addr_fmt, i * m_columns);
       dc->SetTextForeground(addrhex_clr);
-      dc->DrawText(offset, 0, m_base.y + (i - m_start_line) * text_sz.y);
+      dc->DrawText(wxString::Format(m_addr_fmt, i * m_columns), 0, m_base.y + (i - m_start_line) * text_sz.y);
 
       dc->SetTextForeground(*wxBLACK);
 
-      // display each byte in hex (and char)
       for (int j = i * m_columns; j < (i * m_columns) + m_columns; j++) {
          if (j >= view_data_sz)
             break;
 
-         wxString byte = wxString::Format(wxT("%02X"), view_data[j]);
-         dc->DrawText(byte, HexCol2Pos(j % m_columns), m_base.y + (i - m_start_line) * text_sz.y);
+         dc->DrawText(wxString::Format(wxT("%02X"), view_data[j]),
+            HexCol2Pos(j % m_columns),
+            m_base.y + (i - m_start_line) * text_sz.y);
 
-         const char &c = (view_data[j] > 0x1F && view_data[j] < 0x7F) ? view_data[j] : '.';
+         const char c = (view_data[j] > 0x1F && view_data[j] < 0x7F) ? view_data[j] : '.';
          dc->DrawText(
             wxString::Format(wxT("%c"), c), CharCol2Pos(j % m_columns), m_base.y + (i - m_start_line) * text_sz.y);
       }
    }
-
-   // display the caret cell in reverse video
-   DrawCaret(dc);
-
-#if 1
-   auto end = std::chrono::system_clock::now();
-   auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-
-   // wxLogStatus("[HexView] ::OnDraw run time: %I64d ms", elapsed.count());
-#endif
 }
 
 void HexView::DrawCaret(wxDC *dc) const {
@@ -408,12 +388,12 @@ void HexView::DrawCaret(wxDC *dc) const {
          : wxString();
 
    if (!m_edit_char) {
-      DrawCaretCell(dc, hx, cy, 2 * text_sz.x, hexText,  caret_fill_clr, CaretCellStyle::Filled);
-      DrawCaretCell(dc, cx, cy,     text_sz.x,  charText, caret_fill_clr, CaretCellStyle::Outline);
+      DrawCaretCell(dc, hx, cy, 2 * text_sz.x, hexText, caret_fill_clr, CaretCellStyle::Filled);
+      DrawCaretCell(dc, cx, cy, text_sz.x, charText, caret_fill_clr, CaretCellStyle::Outline);
    }
    else {
-      DrawCaretCell(dc, cx, cy,     text_sz.x,  charText, caret_fill_clr, CaretCellStyle::Filled);
-      DrawCaretCell(dc, hx, cy, 2 * text_sz.x,  hexText,  caret_fill_clr, CaretCellStyle::Outline);
+      DrawCaretCell(dc, cx, cy, text_sz.x, charText, caret_fill_clr, CaretCellStyle::Filled);
+      DrawCaretCell(dc, hx, cy, 2 * text_sz.x, hexText, caret_fill_clr, CaretCellStyle::Outline);
    }
 }
 
@@ -452,57 +432,6 @@ void HexView::DrawBackground(wxDC *dc) const {
    // horizontal ruler
    if (m_show_ruler)
       dc->DrawRectangle(wxRect(0, 0, m_base.width, m_base.y - 3));
-
-#if 0
-   wxSize client_sz = m_frame->GetCanvas()->GetClientSize();
-   const int lines_shown = int(client_sz.y / text_sz.y) + (client_sz.y % text_sz.y ? 1 : 0);
-
-   for (int i = 0; i < lines_shown; i++)
-   {
-      dc->SetPen(*wxBLACK_PEN);
-      dc->DrawLine(0, i * text_sz.y, client_sz.x, i * text_sz.y);
-
-      if (!i)
-      {
-         int colcount = 0;
-         int curhexb_x = offw + text_sz.x;
-         int curcharb_x = curhexb_x + (m_columns * text_sz.x * 2 + m_columns * 9) + (m_group_by ? (m_group_by - 1) * text_sz.x : 0);
-
-         for (int j = 0; j < m_columns; j++)
-         {
-            dc->SetPen(*wxLIGHT_GREY_PEN);
-            dc->DrawLine(curhexb_x, 0, curhexb_x, client_sz.y);
-
-            dc->DrawLine(curhexb_x + text_sz.x * 2, 0, curhexb_x + text_sz.x * 2, client_sz.y);
-            curhexb_x += text_sz.x + text_sz.x + text_sz.x;
-
-            dc->SetPen(*wxBLACK_PEN);
-            dc->DrawLine(curcharb_x, 0, curcharb_x, client_sz.y);
-            curcharb_x += text_sz.x;
-
-            if (m_group_by && ++colcount == m_group_by)
-               colcount = 0, curhexb_x += text_sz.x;
-         }
-      }
-   }
-
-   dc->SetPen(wxPen(wxColour(0, 105, 153)));
-#endif
-
-#if 0
-   dc->SetPen(*wxRED_PEN);
-
-   // horizontal
-   dc->DrawLine(m_base.GetTopLeft(), m_base.GetTopRight());
-   dc->DrawLine(m_base.GetLeft(), m_base.GetBottom(), m_base.GetRight(), m_base.GetBottom());
-
-   // vertical
-   dc->DrawLine(m_base.GetTopLeft(), m_base.GetBottomLeft());
-   dc->DrawLine(m_base.GetTopRight(), m_base.GetBottomRight());
-
-
-   dc->SetPen(wxPen(wxColour(0, 105, 153)));
-#endif
 }
 
 void HexView::MovePos(int key, bool ctrl_down, bool shift_down, bool alt_down) {
