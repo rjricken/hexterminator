@@ -40,13 +40,11 @@
 #include <type_traits>
 #include <utility>
 
-class DebugPanel : public wxPanel
-{
+class DebugPanel : public wxPanel {
 public:
    using Getter = std::function<wxString()>;
 
-   struct Entry
-   {
+   struct Entry {
       Getter get;
       wxString last;
       std::uint64_t id = 0;
@@ -54,8 +52,7 @@ public:
 
    using WatchMap = std::map<wxString, Entry>;
 
-   class Watch
-   {
+   class Watch {
    public:
       Watch() = default;
 
@@ -63,14 +60,11 @@ public:
           : m_map(std::move(map)), m_name(std::move(name)), m_id(id) {}
 
       Watch(Watch &&other) noexcept
-          : m_map(std::exchange(other.m_map, {})),
-            m_name(std::move(other.m_name)),
-            m_id(std::exchange(other.m_id, 0)) {}
+          : m_map(std::exchange(other.m_map, {})), m_name(std::move(other.m_name)), m_id(std::exchange(other.m_id, 0)) {
+      }
 
-      Watch &operator=(Watch &&other) noexcept
-      {
-         if (this != &other)
-         {
+      Watch &operator=(Watch &&other) noexcept {
+         if (this != &other) {
             release();
 
             m_map = std::exchange(other.m_map, {});
@@ -84,20 +78,14 @@ public:
       Watch(const Watch &) = delete;
       Watch &operator=(const Watch &) = delete;
 
-      ~Watch()
-      {
-         release();
-      }
+      ~Watch() { release(); }
 
    private:
-      void release()
-      {
-         if (auto map = m_map.lock())
-         {
+      void release() {
+         if (auto map = m_map.lock()) {
             auto it = map->find(m_name);
 
-            if (it != map->end() && it->second.id == m_id)
-            {
+            if (it != map->end() && it->second.id == m_id) {
                map->erase(it);
             }
          }
@@ -116,46 +104,36 @@ public:
    [[nodiscard]] Watch AddWatch(const wxString &name, Getter getter);
 
    template <typename T>
-   [[nodiscard]] Watch AddWatchRef(const wxString &name, const T *var)
-   {
-      return AddWatch(name, [var]
-                      { return ToString(*var); });
+   [[nodiscard]] Watch AddWatchRef(const wxString &name, const T *var) {
+      return AddWatch(name, [var] { return ToString(*var); });
    }
 
    void StartUpdateTimer(int intervalMs = 100);
    void StopUpdateTimer();
 
    template <typename T>
-   static wxString ToString(const T &v)
-   {
+   static wxString ToString(const T &v) {
       using U = std::remove_cv_t<T>;
 
-      if constexpr (std::is_same_v<U, bool>)
-      {
+      if constexpr (std::is_same_v<U, bool>) {
          return v ? "true" : "false";
       }
-      else if constexpr (std::is_integral_v<U> && std::is_signed_v<U>)
-      {
+      else if constexpr (std::is_integral_v<U> && std::is_signed_v<U>) {
          return wxString::Format("%lld", static_cast<long long>(v));
       }
-      else if constexpr (std::is_integral_v<U>)
-      {
+      else if constexpr (std::is_integral_v<U>) {
          return wxString::Format("%llu", static_cast<unsigned long long>(v));
       }
-      else if constexpr (std::is_same_v<U, wxPoint>)
-      {
+      else if constexpr (std::is_same_v<U, wxPoint>) {
          return wxString::Format("(%d,%d)", v.x, v.y);
       }
-      else if constexpr (std::is_same_v<U, wxSize>)
-      {
+      else if constexpr (std::is_same_v<U, wxSize>) {
          return wxString::Format("(%dx%d)", v.GetWidth(), v.GetHeight());
       }
-      else if constexpr (std::is_same_v<U, wxRect>)
-      {
+      else if constexpr (std::is_same_v<U, wxRect>) {
          return wxString::Format("(%d,%d,%d,%d)", v.x, v.y, v.width, v.height);
       }
-      else
-      {
+      else {
          static_assert(!sizeof(U), "DebugPanel::ToString: type not supported");
       }
    }
@@ -170,6 +148,6 @@ private:
    std::uint64_t m_nextId = 1;
 };
 
-#endif // HT_DEBUG_PAMEL_ENABLED
+#endif  // HT_DEBUG_PAMEL_ENABLED
 
-#endif // HT_DEBUGPANEL_HPP
+#endif  // HT_DEBUGPANEL_HPP

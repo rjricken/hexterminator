@@ -30,40 +30,40 @@
 #include <wx/combo.h>
 
 BEGIN_EVENT_TABLE(HtMainFrame, wxAuiMDIParentFrame)
-EVT_MENU(HT_FileExit, HtMainFrame::OnFileExit)
-EVT_MENU(HT_FileOpen, HtMainFrame::OnFileOpen)
-EVT_MENU(HT_ViewStatusBar, HtMainFrame::OnViewStatusBar)
-EVT_MENU(HT_ToolsLogger, HtMainFrame::OnToolsLog)
-EVT_MENU(HT_HelpAbout, HtMainFrame::OnHelpAbout)
-EVT_ERASE_BACKGROUND(HtMainFrame::OnEraseBackground)
-EVT_CLOSE(HtMainFrame::OnClose)
-EVT_UPDATE_UI(HT_FileSave, HtMainFrame::OnUpdateUI)
-EVT_UPDATE_UI(HT_FileClose, HtMainFrame::OnUpdateUI)
-EVT_UPDATE_UI(HT_EditCut, HtMainFrame::OnUpdateUI)
-EVT_UPDATE_UI(HT_EditCopy, HtMainFrame::OnUpdateUI)
-EVT_UPDATE_UI(HT_EditPaste, HtMainFrame::OnUpdateUI)
-EVT_UPDATE_UI(HT_Tool_JumpHex, HtMainFrame::OnUpdateUI)
-EVT_UPDATE_UI(HT_Tool_JumpDec, HtMainFrame::OnUpdateUI)
-EVT_UPDATE_UI(HT_Tool_SearchBox, HtMainFrame::OnUpdateUI)
+   EVT_MENU(HT_FileExit, HtMainFrame::OnFileExit)
+   EVT_MENU(HT_FileOpen, HtMainFrame::OnFileOpen)
+   EVT_MENU(HT_ViewStatusBar, HtMainFrame::OnViewStatusBar)
+   EVT_MENU(HT_ToolsLogger, HtMainFrame::OnToolsLog)
+   EVT_MENU(HT_HelpAbout, HtMainFrame::OnHelpAbout)
+   EVT_ERASE_BACKGROUND(HtMainFrame::OnEraseBackground)
+   EVT_CLOSE(HtMainFrame::OnClose)
+   EVT_UPDATE_UI(HT_FileSave, HtMainFrame::OnUpdateUI)
+   EVT_UPDATE_UI(HT_FileClose, HtMainFrame::OnUpdateUI)
+   EVT_UPDATE_UI(HT_EditCut, HtMainFrame::OnUpdateUI)
+   EVT_UPDATE_UI(HT_EditCopy, HtMainFrame::OnUpdateUI)
+   EVT_UPDATE_UI(HT_EditPaste, HtMainFrame::OnUpdateUI)
+   EVT_UPDATE_UI(HT_Tool_JumpHex, HtMainFrame::OnUpdateUI)
+   EVT_UPDATE_UI(HT_Tool_JumpDec, HtMainFrame::OnUpdateUI)
+   EVT_UPDATE_UI(HT_Tool_SearchBox, HtMainFrame::OnUpdateUI)
 #ifdef HT_DEBUG_PANEL_ENABLED
-EVT_MENU(HT_ViewDebugPanel, HtMainFrame::OnViewDebugPanel)
-EVT_UPDATE_UI(HT_ViewDebugPanel, HtMainFrame::OnUpdateUI)
+   EVT_MENU(HT_ViewDebugPanel, HtMainFrame::OnViewDebugPanel)
+   EVT_UPDATE_UI(HT_ViewDebugPanel, HtMainFrame::OnUpdateUI)
 #endif
-EVT_AUINOTEBOOK_PAGE_CLOSE(wxID_ANY, HtMainFrame::OnNotebookPageClose)
-EVT_AUITOOLBAR_TOOL_DROPDOWN(HT_EditUndo, HtMainFrame::OnEditUndoDropDown)
-EVT_AUITOOLBAR_TOOL_DROPDOWN(HT_FileOpen, HtMainFrame::OnFileOpenDropDown)
+   EVT_AUINOTEBOOK_PAGE_CLOSE(wxID_ANY, HtMainFrame::OnNotebookPageClose)
+   EVT_AUITOOLBAR_TOOL_DROPDOWN(HT_EditUndo, HtMainFrame::OnEditUndoDropDown)
+   EVT_AUITOOLBAR_TOOL_DROPDOWN(HT_FileOpen, HtMainFrame::OnFileOpenDropDown)
 
-EVT_KEY_DOWN(HtMainFrame::OnKeyDown)
-EVT_CHAR_HOOK(HtMainFrame::OnKeyDown)
+   EVT_KEY_DOWN(HtMainFrame::OnKeyDown)
+   EVT_CHAR_HOOK(HtMainFrame::OnKeyDown)
 END_EVENT_TABLE()
 
 // #if !defined(__WXMSW__) && !defined(__WXPM__)
 //    #include "../resources/hterminator.xpm"
 // #endif
 
-HtMainFrame::HtMainFrame(const wxString &title, const wxPoint &pos, const wxSize &size, long flags) : wxAuiMDIParentFrame(0, wxID_ANY, title, pos, size, flags /*| wxBORDER_NONE | wxFRAME_NO_WINDOW_MENU*/),
-                                                                                                      history(9, HT_FileHistory_Base)
-{
+HtMainFrame::HtMainFrame(const wxString &title, const wxPoint &pos, const wxSize &size, long flags)
+    : wxAuiMDIParentFrame(0, wxID_ANY, title, pos, size, flags /*| wxBORDER_NONE | wxFRAME_NO_WINDOW_MENU*/),
+      history(9, HT_FileHistory_Base) {
    // logger
    logger = new wxLogWindow(this, wxT("Logger"), false);
    wxLog::SetActiveTarget(logger);
@@ -79,27 +79,35 @@ HtMainFrame::HtMainFrame(const wxString &title, const wxPoint &pos, const wxSize
 
 #if wxUSE_MENUS
    CreateMenu(art);
-#endif //~wxUSE_MENUS
+#endif  //~wxUSE_MENUS
 
    BookmarksPanel *bookmarks = new BookmarksPanel(this, wxID_ANY);
 
-   wxAuiToolBar *tb_main = new wxAuiToolBar(this, HT_Toolbar_Main /*, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW*/);
+   wxAuiToolBar *tb_main = new wxAuiToolBar(
+      this, HT_Toolbar_Main /*, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW*/);
    tb_main->SetToolBitmapSize(wxSize(16, 15));
    tb_main->AddTool(HT_FileNew, _("New"), art.GetBitmap(HTArtId_MainTb, HTArt_New), _("New (Ctrl+N)"));
    tb_main->AddTool(HT_FileOpen, _("Open"), art.GetBitmap(HTArtId_MainTb, HTArt_Open), _("Open (Ctrl+O)"));
-   tb_main->AddTool(HT_FileSave, _("Save"), art.GetBitmap(HTArtId_MainTb, HTArt_Save), _("Save (Ctrl+S)"))->SetDisabledBitmap(art.GetBitmap(HTArtId_MainTb, HTArt_SaveGr));
+   tb_main->AddTool(HT_FileSave, _("Save"), art.GetBitmap(HTArtId_MainTb, HTArt_Save), _("Save (Ctrl+S)"))
+      ->SetDisabledBitmap(art.GetBitmap(HTArtId_MainTb, HTArt_SaveGr));
    tb_main->AddSeparator();
-   tb_main->AddTool(HT_EditCut, _("Cut"), art.GetBitmap(HTArtId_MainTb, HTArt_Cut), _("Cut (Ctrl+X)"))->SetDisabledBitmap(art.GetBitmap(HTArtId_MainTb, HTArt_CutGr));
-   tb_main->AddTool(HT_EditCopy, _("Copy"), art.GetBitmap(HTArtId_MainTb, HTArt_Copy), _("Copy (Ctrl+C)"))->SetDisabledBitmap(art.GetBitmap(HTArtId_MainTb, HTArt_CopyGr));
-   tb_main->AddTool(HT_EditPaste, _("Paste"), art.GetBitmap(HTArtId_MainTb, HTArt_Paste), _("Paste (Ctrl+V)"))->SetDisabledBitmap(art.GetBitmap(HTArtId_MainTb, HTArt_PasteGr));
+   tb_main->AddTool(HT_EditCut, _("Cut"), art.GetBitmap(HTArtId_MainTb, HTArt_Cut), _("Cut (Ctrl+X)"))
+      ->SetDisabledBitmap(art.GetBitmap(HTArtId_MainTb, HTArt_CutGr));
+   tb_main->AddTool(HT_EditCopy, _("Copy"), art.GetBitmap(HTArtId_MainTb, HTArt_Copy), _("Copy (Ctrl+C)"))
+      ->SetDisabledBitmap(art.GetBitmap(HTArtId_MainTb, HTArt_CopyGr));
+   tb_main->AddTool(HT_EditPaste, _("Paste"), art.GetBitmap(HTArtId_MainTb, HTArt_Paste), _("Paste (Ctrl+V)"))
+      ->SetDisabledBitmap(art.GetBitmap(HTArtId_MainTb, HTArt_PasteGr));
    tb_main->AddSeparator();
-   tb_main->AddTool(HT_EditUndo, _("Undo"), art.GetBitmap(HTArtId_MainTb, HTArt_Undo), _("Undo (Ctrl+Z)"))->SetDisabledBitmap(art.GetBitmap(HTArtId_MainTb, HTArt_UndoGr));
-   tb_main->AddTool(HT_EditRedo, _("Redo"), art.GetBitmap(HTArtId_MainTb, HTArt_Redo), _("Redo (Ctrl+Y)"))->SetDisabledBitmap(art.GetBitmap(HTArtId_MainTb, HTArt_RedoGr));
+   tb_main->AddTool(HT_EditUndo, _("Undo"), art.GetBitmap(HTArtId_MainTb, HTArt_Undo), _("Undo (Ctrl+Z)"))
+      ->SetDisabledBitmap(art.GetBitmap(HTArtId_MainTb, HTArt_UndoGr));
+   tb_main->AddTool(HT_EditRedo, _("Redo"), art.GetBitmap(HTArtId_MainTb, HTArt_Redo), _("Redo (Ctrl+Y)"))
+      ->SetDisabledBitmap(art.GetBitmap(HTArtId_MainTb, HTArt_RedoGr));
    tb_main->SetToolDropDown(HT_EditUndo, true);
    tb_main->SetToolDropDown(HT_FileOpen, true);
    tb_main->Realize();
 
-   wxAuiToolBar *tb_view = new wxAuiToolBar(this, HT_Toolbar_View /*, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW*/);
+   wxAuiToolBar *tb_view = new wxAuiToolBar(
+      this, HT_Toolbar_View /*, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW*/);
    wxChoice *tablelist = new wxChoice(tb_view, HT_Tool_TableList);
    tb_view->AddControl(tablelist, _("Table"));
    tb_view->AddTool(HT_ViewAddTable, _("Add Table"), art.GetBitmap(HTArtId_ViewTb, HTArt_AddTable), _("Add table"));
@@ -107,11 +115,14 @@ HtMainFrame::HtMainFrame(const wxString &title, const wxPoint &pos, const wxSize
    tablelist->Append(wxT("ASCII default"));
    tablelist->SetSelection(0);
 
-   wxAuiToolBar *tb_nav = new wxAuiToolBar(this, HT_Toolbar_Navigation /*, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW*/);
+   wxAuiToolBar *tb_nav = new wxAuiToolBar(
+      this, HT_Toolbar_Navigation /*, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW*/);
    tb_nav->SetToolBitmapSize(wxSize(16, 15));
-   tb_nav->AddTool(HT_EditFindForw, _("Find backward"), art.GetBitmap(HTArtId_NavTb, HTArt_SearchBack), _("Find Backward"));
+   tb_nav->AddTool(
+      HT_EditFindForw, _("Find backward"), art.GetBitmap(HTArtId_NavTb, HTArt_SearchBack), _("Find Backward"));
    tb_nav->AddControl(new wxComboBox(tb_nav, HT_Tool_SearchBox, wxT(""), wxDefaultPosition, wxSize(200, 20)));
-   tb_nav->AddTool(HT_EditFindBack, _("Find forward"), art.GetBitmap(HTArtId_NavTb, HTArt_SearchForw), _("Find Forward"));
+   tb_nav->AddTool(
+      HT_EditFindBack, _("Find forward"), art.GetBitmap(HTArtId_NavTb, HTArt_SearchForw), _("Find Forward"));
    wxComboBox *jump_hex = new wxComboBox(tb_nav, HT_Tool_JumpHex, wxT(""), wxDefaultPosition, wxSize(115, 20));
    jump_hex->SetForegroundColour(wxColor(128, 0, 0));
    tb_nav->AddControl(jump_hex, _("Jump hex"));
@@ -122,10 +133,21 @@ HtMainFrame::HtMainFrame(const wxString &title, const wxPoint &pos, const wxSize
    tb_nav->Realize();
 
    aui_manager.AddPane(tb_main, wxAuiPaneInfo().ToolbarPane().Top().LeftDockable(false).RightDockable(false));
-   aui_manager.AddPane(tb_view, wxAuiPaneInfo().ToolbarPane().Top().Position(1).LeftDockable(false).RightDockable(false));
+   aui_manager.AddPane(
+      tb_view, wxAuiPaneInfo().ToolbarPane().Top().Position(1).LeftDockable(false).RightDockable(false));
    aui_manager.AddPane(tb_nav, wxAuiPaneInfo().ToolbarPane().Top().Row(1).LeftDockable(false).RightDockable(false));
 
-   aui_manager.AddPane(bookmarks, wxAuiPaneInfo().Right().PinButton().CloseButton().MinimizeButton().MinSize(150, 100).BestSize(180, 100).FloatingSize(250, 200).Caption("Bookmarks").Name("bookmarks"));
+   aui_manager.AddPane(bookmarks,
+      wxAuiPaneInfo()
+         .Right()
+         .PinButton()
+         .CloseButton()
+         .MinimizeButton()
+         .MinSize(150, 100)
+         .BestSize(180, 100)
+         .FloatingSize(250, 200)
+         .Caption("Bookmarks")
+         .Name("bookmarks"));
 
    statusbar = new wxStatusBar(this, wxID_ANY, wxSB_FLAT);
    statusbar->SetFieldsCount(1);
@@ -133,7 +155,7 @@ HtMainFrame::HtMainFrame(const wxString &title, const wxPoint &pos, const wxSize
    SetStatusBar(statusbar);
 
    wxAuiMDIParentFrame::GetClientWindow()->Connect(
-       wxEVT_COMMAND_AUINOTEBOOK_PAGE_CLOSE, wxAuiNotebookEventHandler(HtMainFrame::OnNotebookPageClose));
+      wxEVT_COMMAND_AUINOTEBOOK_PAGE_CLOSE, wxAuiNotebookEventHandler(HtMainFrame::OnNotebookPageClose));
 
    jump_hex->Connect(wxEVT_TEXT_ENTER, wxCommandEventHandler(HtMainFrame::OnJumpHexTextEnter));
    // jump_hex->Connect(wxEVT_TEXT, wxCommandEventHandler(HtMainFrame::OnJumpHexTextEnter));
@@ -141,7 +163,17 @@ HtMainFrame::HtMainFrame(const wxString &title, const wxPoint &pos, const wxSize
 #ifdef HT_DEBUG_PANEL_ENABLED
    m_debugPanel = new DebugPanel(this, HT_DebugPanel);
 
-   aui_manager.AddPane(m_debugPanel, wxAuiPaneInfo().Right().PinButton().CloseButton().MinimizeButton().MinSize(150, 100).BestSize(240, 100).FloatingSize(250, 200).Caption("Debug Info").Name("debug_pane"));
+   aui_manager.AddPane(m_debugPanel,
+      wxAuiPaneInfo()
+         .Right()
+         .PinButton()
+         .CloseButton()
+         .MinimizeButton()
+         .MinSize(150, 100)
+         .BestSize(240, 100)
+         .FloatingSize(250, 200)
+         .Caption("Debug Info")
+         .Name("debug_pane"));
    aui_manager.GetPane("bookmarks").Hide();
 
 #endif
@@ -153,57 +185,57 @@ HtMainFrame::HtMainFrame(const wxString &title, const wxPoint &pos, const wxSize
    {
       wxAuiPaneInfo &p = aui_manager.GetPane("debug_pane");
       wxPrintf("pane ok=%d shown=%d docked=%d rect=(%d,%d %dx%d)\n",
-               (int)p.IsOk(), (int)p.IsShown(), (int)p.IsDocked(),
-               p.rect.x, p.rect.y, p.rect.width, p.rect.height);
+         (int)p.IsOk(),
+         (int)p.IsShown(),
+         (int)p.IsDocked(),
+         p.rect.x,
+         p.rect.y,
+         p.rect.width,
+         p.rect.height);
    }
    if (m_debugPanel)
       wxPrintf("panel shown=%d size=%dx%d\n",
-               (int)m_debugPanel->IsShown(), m_debugPanel->GetSize().x, m_debugPanel->GetSize().y);
+         (int)m_debugPanel->IsShown(),
+         m_debugPanel->GetSize().x,
+         m_debugPanel->GetSize().y);
    fflush(stdout);
 #endif
 
    // TEMP -----------------
-   // DoOpenFile(wxT("D:/Projects/ricardojricken/trunk/hexterminator/test/1452 - Metroid - Zero Mission (EU) (M5).gba"));
-   // DoOpenFile("test/1452 - Metroid - Zero Mission (EU) (M5).gba");
+   // DoOpenFile(wxT("D:/Projects/ricardojricken/trunk/hexterminator/test/1452 - Metroid - Zero Mission (EU)
+   // (M5).gba")); DoOpenFile("test/1452 - Metroid - Zero Mission (EU) (M5).gba");
 }
 
-HtMainFrame::~HtMainFrame()
-{
+HtMainFrame::~HtMainFrame() {
    // The open tabs/windows must be closed manually before this code executes (I guess)... oO
    // So the OnClose/OnExit (whatever) should be responsible of doing it (again, I guess).
 
    aui_manager.UnInit();
 }
 
-void HtMainFrame::OnFileOpen(wxCommandEvent &WXUNUSED(event))
-{
-   wxFileDialog dialog(this, wxT("Escolha um arquivo"), wxT(""), wxT(""), _("All files (*.*)|*.*"), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+void HtMainFrame::OnFileOpen(wxCommandEvent &WXUNUSED(event)) {
+   wxFileDialog dialog(
+      this, wxT("Escolha um arquivo"), wxT(""), wxT(""), _("All files (*.*)|*.*"), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
-   if (dialog.ShowModal() == wxID_OK)
-   {
+   if (dialog.ShowModal() == wxID_OK) {
       wxString path = dialog.GetPath();
       DoOpenFile(path);
    }
 }
 
-void HtMainFrame::OnFileExit(wxCommandEvent &event)
-{
+void HtMainFrame::OnFileExit(wxCommandEvent &event) {
    wxMessageDialog confirm(this, _("Are you sure you want to quit?"), _("HEXterminator"), wxYES_NO | wxYES_DEFAULT);
-   if (confirm.ShowModal() == wxID_YES)
-   {
+   if (confirm.ShowModal() == wxID_YES) {
       Close();
    }
-   else
-   {
+   else {
       event.Skip();
    }
 }
 
-void HtMainFrame::OnClose(wxCloseEvent &WXUNUSED(event))
-{
+void HtMainFrame::OnClose(wxCloseEvent &WXUNUSED(event)) {
 #ifdef HT_DEBUG_PANEL_ENABLED
-   if (m_debugPanel)
-   {
+   if (m_debugPanel) {
       m_debugPanel->StopUpdateTimer();
    }
 #endif
@@ -222,69 +254,62 @@ void HtMainFrame::OnClose(wxCloseEvent &WXUNUSED(event))
    Destroy();
 }
 
-void HtMainFrame::OnUpdateUI(wxUpdateUIEvent &event)
-{
-   switch (event.GetId())
-   {
-   case HT_FileSave:
-      event.Enable(GetActiveView() != 0);
-      break;
+void HtMainFrame::OnUpdateUI(wxUpdateUIEvent &event) {
+   switch (event.GetId()) {
+      case HT_FileSave:
+         event.Enable(GetActiveView() != 0);
+         break;
 
-   case HT_FileClose:
-      event.Enable(GetActiveView() != 0);
-      break;
+      case HT_FileClose:
+         event.Enable(GetActiveView() != 0);
+         break;
 
-   case HT_EditCut:
-   case HT_EditCopy:
-   case HT_EditPaste:
-      event.Enable(false);
-      break;
+      case HT_EditCut:
+      case HT_EditCopy:
+      case HT_EditPaste:
+         event.Enable(false);
+         break;
 
-   // updates the current offset in the selected tab
-   case HT_Tool_JumpHex:
-   case HT_Tool_JumpDec:
-   {
-      HexView *view = GetActiveView();
-      event.Enable(view != 0);
+      // updates the current offset in the selected tab
+      case HT_Tool_JumpHex:
+      case HT_Tool_JumpDec: {
+         HexView *view = GetActiveView();
+         event.Enable(view != 0);
 
-      if (view)
-      {
-         wxFileOffset off = view->GetCurrentOffset();
+         if (view) {
+            wxFileOffset off = view->GetCurrentOffset();
 
-         event.GetId() == HT_Tool_JumpHex ? event.SetText(wxString::Format("%llX", off)) : event.SetText(wxString::Format("%llu", off));
+            event.GetId() == HT_Tool_JumpHex ? event.SetText(wxString::Format("%llX", off))
+                                             : event.SetText(wxString::Format("%llu", off));
+         }
+         break;
       }
-   }
-   break;
 
-   case HT_Tool_SearchBox:
-      event.Enable(GetActiveView() != 0);
-      break;
+      case HT_Tool_SearchBox:
+         event.Enable(GetActiveView() != 0);
+         break;
 
 #ifdef HT_DEBUG_PANEL_ENABLED
-   case HT_ViewDebugPanel:
-      event.Check(aui_manager.GetPane("debug_pane").IsShown());
-      break;
+      case HT_ViewDebugPanel:
+         event.Check(aui_manager.GetPane("debug_pane").IsShown());
+         break;
 #endif
    }
 }
 
-void HtMainFrame::OnViewStatusBar(wxCommandEvent &event)
-{
+void HtMainFrame::OnViewStatusBar(wxCommandEvent &event) {
    GetStatusBar()->Show(event.IsChecked());
    Layout();
 }
 
-void HtMainFrame::OnHelpAbout(wxCommandEvent &WXUNUSED(event))
-{
+void HtMainFrame::OnHelpAbout(wxCommandEvent &WXUNUSED(event)) {
    HtAbout about(this, _("About HEXterminator"), wxSize(370, 300));
    about.CenterOnParent();
    about.ShowModal();
 }
 
-void HtMainFrame::OnEditUndoDropDown(wxAuiToolBarEvent &event)
-{
-   if (event.IsDropDownClicked())
-   {
+void HtMainFrame::OnEditUndoDropDown(wxAuiToolBarEvent &event) {
+   if (event.IsDropDownClicked()) {
       wxAuiToolBar *tb = static_cast<wxAuiToolBar *>(event.GetEventObject());
       tb->SetToolSticky(event.GetId(), true);
 
@@ -303,10 +328,8 @@ void HtMainFrame::OnEditUndoDropDown(wxAuiToolBarEvent &event)
    }
 }
 
-void HtMainFrame::OnFileOpenDropDown(wxAuiToolBarEvent &event)
-{
-   if (event.IsDropDownClicked())
-   {
+void HtMainFrame::OnFileOpenDropDown(wxAuiToolBarEvent &event) {
+   if (event.IsDropDownClicked()) {
       wxAuiToolBar *tb = static_cast<wxAuiToolBar *>(event.GetEventObject());
       tb->SetToolSticky(event.GetId(), true);
 
@@ -329,23 +352,20 @@ void HtMainFrame::OnFileOpenDropDown(wxAuiToolBarEvent &event)
       // make sure the button is "un-stuck"
       tb->SetToolSticky(event.GetId(), false);
    }
-   else
-   {
+   else {
       wxCommandEvent dummy;
       OnFileOpen(dummy);
    }
 }
 
-void HtMainFrame::OnRecentFilesSelected(wxCommandEvent &event)
-{
+void HtMainFrame::OnRecentFilesSelected(wxCommandEvent &event) {
    int index = event.GetId() - history.GetBaseId();
    wxString selFile = history.GetHistoryFile(index);
 
    DoOpenFile(selFile);
 }
 
-void HtMainFrame::OnNotebookPageClose(wxAuiNotebookEvent &event)
-{
+void HtMainFrame::OnNotebookPageClose(wxAuiNotebookEvent &event) {
    wxAuiNotebook *nb = static_cast<wxAuiNotebook *>(event.GetEventObject());
    HexFrame *frame = static_cast<HexFrame *>(nb->GetPage(event.GetSelection()));
 
@@ -356,8 +376,7 @@ void HtMainFrame::OnNotebookPageClose(wxAuiNotebookEvent &event)
 }
 
 #ifdef HT_DEBUG_PANEL_ENABLED
-void HtMainFrame::OnViewDebugPanel(wxCommandEvent &event)
-{
+void HtMainFrame::OnViewDebugPanel(wxCommandEvent &event) {
    aui_manager.GetPane("debug_pane").Show(event.IsChecked());
    aui_manager.Update();
 }
@@ -375,8 +394,7 @@ void HtMainFrame::OnViewDebugPanel(wxCommandEvent &event)
 #endif
 }*/
 
-void HtMainFrame::OnToolsLog(wxCommandEvent &WXUNUSED(event))
-{
+void HtMainFrame::OnToolsLog(wxCommandEvent &WXUNUSED(event)) {
    wxSize display_sz = wxGetDisplaySize();
    wxSize logger_sz = logger->GetFrame()->GetSize();
 
@@ -384,16 +402,13 @@ void HtMainFrame::OnToolsLog(wxCommandEvent &WXUNUSED(event))
    logger->Show();
 }
 
-void HtMainFrame::OnEraseBackground(wxEraseEvent &WXUNUSED(event))
-{
+void HtMainFrame::OnEraseBackground(wxEraseEvent &WXUNUSED(event)) {
    // does nothing to prevent flicker
 }
 
-void HtMainFrame::OnKeyDown(wxKeyEvent &event)
-{
+void HtMainFrame::OnKeyDown(wxKeyEvent &event) {
    // Keyboard shortcuts to change the current active notebook tab.
-   if (event.ControlDown() && event.GetKeyCode() == WXK_TAB)
-   {
+   if (event.ControlDown() && event.GetKeyCode() == WXK_TAB) {
       bool goForward = !event.ShiftDown();
 
       GetNotebook()->AdvanceSelection(goForward);
@@ -404,8 +419,7 @@ void HtMainFrame::OnKeyDown(wxKeyEvent &event)
    event.Skip();
 }
 
-void HtMainFrame::OnJumpHexTextEnter(wxCommandEvent &event)
-{
+void HtMainFrame::OnJumpHexTextEnter(wxCommandEvent &event) {
    auto *cbxPtr = dynamic_cast<wxComboBox *>(event.GetEventObject());
    wxString addressStr = cbxPtr->GetValue();
 
@@ -417,8 +431,7 @@ void HtMainFrame::OnJumpHexTextEnter(wxCommandEvent &event)
  * and opening the request file for editing in a new notebook tab.
  * @param path Path to the filename being opened
  */
-void HtMainFrame::DoOpenFile(const wxString &path)
-{
+void HtMainFrame::DoOpenFile(const wxString &path) {
    wxDocManager *docm = wxGetApp().doc_manager.get();
 
    // TODO: fazer as checagens no arquivo antes de tentar abrir.
@@ -426,20 +439,17 @@ void HtMainFrame::DoOpenFile(const wxString &path)
 
    // check if the requested file ain't already open
    wxList &docs = docm->GetDocuments();
-   for (wxList::iterator i = docs.begin(); i != docs.end(); i++)
-   {
+   for (wxList::iterator i = docs.begin(); i != docs.end(); i++) {
       HexDoc *doc = dynamic_cast<HexDoc *>(*i);
 
-      if (doc && doc->GetFilename() == path)
-      {
+      if (doc && doc->GetFilename() == path) {
          // it's open already... focus it and we're done
          HexFrame *frame = static_cast<HexView *>(doc->GetFirstView())->GetFrame();
 
          auto *nb = GetNotebook();
          auto frmIdx = nb->FindPage(static_cast<wxWindow *>(frame));
 
-         if (frmIdx != wxNOT_FOUND)
-         {
+         if (frmIdx != wxNOT_FOUND) {
             nb->SetSelection(frmIdx);
             frame->SetFocus();
          }
@@ -451,26 +461,23 @@ void HtMainFrame::DoOpenFile(const wxString &path)
    // the view is created automatically when we create the doc
    HexDoc *doc = (HexDoc *)docm->CreateDocument(path, wxDOC_SILENT);
 
-   if (doc)
-   {
+   if (doc) {
       HexView *view = (HexView *)doc->GetFirstView();
 
       HexFrame *frame = new HexFrame(view, this, wxID_ANY, wxFileNameFromPath(path));
       history.AddFileToHistory(path);
 
 #ifdef HT_DEBUG_PANEL_ENABLED
-      if (m_debugPanel)
-      {
+      if (m_debugPanel) {
          view->AddToDebugPanel(m_debugPanel);
       }
 #endif
    }
-   else // TODO: melhorar essa mensagem de erro.
+   else  // TODO: melhorar essa mensagem de erro.
       wxMessageBox(wxString::Format("Error opening file\n%s", path), "Error", wxOK | wxICON_ERROR, this);
 }
 
-void HtMainFrame::CreateMenu(HtArtProvider &art)
-{
+void HtMainFrame::CreateMenu(HtArtProvider &art) {
    // -- File --
    wxMenu *file_menu = new wxMenu;
 

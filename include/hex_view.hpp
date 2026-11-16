@@ -39,8 +39,7 @@
 #include <vector>
 #endif
 
-class HexView : public wxView
-{
+class HexView : public wxView {
 #ifdef HT_DEBUG_PANEL_ENABLED
 public:
    void AddToDebugPanel(DebugPanel *dbgPanel);
@@ -50,30 +49,27 @@ public:
    HexView();
    ~HexView();
 
-   void SetFrame(HexFrame *f)
-   {
+   void SetFrame(HexFrame *f) {
       // wxLogDebug("<<Flow>> HexView::SetFrame");
 
       m_frame = f;
       RecalcDisplay();
    }
 
-   void UpdateCaret()
-   {
+   void UpdateCaret() {
       int x = m_edit_char ? CharCol2Pos(m_caretpos.x) : HexCol2Pos(m_caretpos.x);
       int y = (m_caretpos.y - m_start_line) * text_sz.y + m_base.y;
 
       m_frame->GetCanvas()->GetCaret()->Move(x, y);
       (m_caretpos.y - m_start_line) >= 0 ? m_frame->ShowCaret() : m_frame->HideCaret();
 
-      wxLogStatus(
-          "Caret is now %svisible at [%d,%d]/[%d,%d] in the %s area",
-          m_frame->GetCanvas()->GetCaret()->IsVisible() ? "" : "in",
-          m_caretpos.x,
-          m_caretpos.y,
-          m_frame->GetCanvas()->GetCaret()->GetPosition().x,
-          m_frame->GetCanvas()->GetCaret()->GetPosition().y,
-          m_edit_char ? "CHAR" : "HEX");
+      wxLogStatus("Caret is now %svisible at [%d,%d]/[%d,%d] in the %s area",
+         m_frame->GetCanvas()->GetCaret()->IsVisible() ? "" : "in",
+         m_caretpos.x,
+         m_caretpos.y,
+         m_frame->GetCanvas()->GetCaret()->GetPosition().x,
+         m_frame->GetCanvas()->GetCaret()->GetPosition().y,
+         m_edit_char ? "CHAR" : "HEX");
 
       // if (y + text_sz.y > m_base.GetBottom())
       //    wxLogStatus("I need to scroll down 1 line");
@@ -81,22 +77,17 @@ public:
 
    void UpdateScrollbars();
 
-   wxFileOffset GetCurrentOffset() const
-   {
-      return m_caretpos.y * m_columns + m_caretpos.x;
-   }
+   wxFileOffset GetCurrentOffset() const { return m_caretpos.y * m_columns + m_caretpos.x; }
 
    HexFrame *GetFrame() const { return m_frame; }
    HexDoc *GetDocument() const { return static_cast<HexDoc *>(wxView::GetDocument()); }
 
    virtual bool OnCreate(wxDocument *doc, long flags = 0);
    virtual void OnDraw(wxDC *dc);
-   virtual void OnUpdate(wxView *WXUNUSED(sender), wxObject *WXUNUSED(hint) = 0)
-   {
+   virtual void OnUpdate(wxView *WXUNUSED(sender), wxObject *WXUNUSED(hint) = 0) {
       // wxLogDebug("<<Flow>> HexView::OnUpdate");
    }
-   virtual bool OnClose(bool WXUNUSED(deleteWindow) = true)
-   {
+   virtual bool OnClose(bool WXUNUSED(deleteWindow) = true) {
       wxLogDebug("[HexView] ::OnClose");
       // m_frame->OnRemoveFromDebugPanel();
       return true;
@@ -123,10 +114,7 @@ private:
    void RecalcViewState();
    void DrawBackground(wxDC *dc) const;
 
-   void DrawVerticalLine(wxDC &dc, const int x, const int y1, const int y2) const
-   {
-      dc.DrawLine(x, y1, x, y2);
-   }
+   void DrawVerticalLine(wxDC &dc, const int x, const int y1, const int y2) const { dc.DrawLine(x, y1, x, y2); }
 
    void MovePos(int key, bool ctrl_down, bool shift_down, bool alt_down);
 
@@ -134,23 +122,20 @@ private:
    int Pos2CharCol(const int pos) const;
 
    // returns x position of given hex area column
-   inline int HexCol2Pos(const int col) const
-   {
+   inline int HexCol2Pos(const int col) const {
       wxASSERT(col <= m_columns);
       return (1 + m_addr_width + col * 3 + col / m_group_by) * text_sz.x;
    }
 
    // returns x position of given char area column
-   inline int CharCol2Pos(const int col) const
-   {
+   inline int CharCol2Pos(const int col) const {
       wxASSERT(col <= m_columns);
       int grouping_width = m_columns / m_group_by + (m_columns % m_group_by ? 1 : 0);
       return (1 + m_addr_width + m_columns * 3 + grouping_width) * text_sz.x + (col - 1) * text_sz.x;
    }
 
    // return file offset of given position
-   wxFileOffset Pos2Offset(wxPoint pos) const
-   {
+   wxFileOffset Pos2Offset(wxPoint pos) const {
       wxFileOffset address = (m_start_line + pos.y / text_sz.y) * m_columns;
       address += m_edit_char ? Pos2CharCol(pos.x) : address += Pos2HexCol(pos.x);
 
@@ -158,25 +143,22 @@ private:
    }
 
    // return position in view of given file offset
-   wxPoint Offset2Pos(wxFileOffset address) const
-   {
-      return m_edit_char ? wxPoint(CharCol2Pos(address % m_columns), (address / m_columns) * text_sz.y) : wxPoint(HexCol2Pos(address % m_columns), (address / m_columns) * text_sz.y);
+   wxPoint Offset2Pos(wxFileOffset address) const {
+      return m_edit_char ? wxPoint(CharCol2Pos(address % m_columns), (address / m_columns) * text_sz.y)
+                         : wxPoint(HexCol2Pos(address % m_columns), (address / m_columns) * text_sz.y);
    }
 
-   void ValidateScroll(wxPoint &scr_pos)
-   {
+   void ValidateScroll(wxPoint &scr_pos) {
       // wxFileOffset doclen = GetDocument()->length();
 
       if (scr_pos.y < 0)
          scr_pos.y = 0;
 
-      if (m_scroll_past_ends)
-      {
+      if (m_scroll_past_ends) {
          if (scr_pos.y > m_numlines - 1)
             scr_pos.y = m_numlines - 1;
       }
-      else
-      {
+      else {
          // TODO: needs a little bit more working ^^ (SEE: UpdateScrollbars)
          if (scr_pos.y > m_numlines - m_numshown + (m_additional_line ? 1 : 0))
             scr_pos.y = m_numlines - m_numshown + (m_additional_line ? 1 : 0);
@@ -237,4 +219,4 @@ private:
    // DECLARE_EVENT_TABLE()
 };
 
-#endif //~HT_HEXVIEW_HPP
+#endif  //~HT_HEXVIEW_HPP

@@ -20,7 +20,7 @@
 #define HT_APP_HPP
 
 #include <wx/wxprec.h>
- 
+
 #ifdef __BORLANDC__
 #pragma hdrstop
 #endif
@@ -35,39 +35,37 @@
 #include "ht_prefs.hpp"
 
 /**
-* Starts HEXterminator execution and bring up its user interface.
-* @author Ricardo J. Ricken
-*/
-class HtApp : public wxApp
-{
+ * Starts HEXterminator execution and bring up its user interface.
+ * @author Ricardo J. Ricken
+ */
+class HtApp : public wxApp {
 public:
-   virtual ~HtApp ();
+   virtual ~HtApp();
 
    /**
-   * This method is called during program initialization. It chooses the
-   * correct language based on the current operational system's language,
-   * picking it from a catalog, when available. It also creates and shows
-   * the main window frame.
-   * @return True if initializated with success, false otherwise.
-   */
+    * This method is called during program initialization. It chooses the
+    * correct language based on the current operational system's language,
+    * picking it from a catalog, when available. It also creates and shows
+    * the main window frame.
+    * @return True if initializated with success, false otherwise.
+    */
    virtual bool OnInit();
 
    /**
-   * This method is called when the program is ending its execution. It
-   * basically saves the user preferences to a configuration file.
-   * @return Exit code
-   */
+    * This method is called when the program is ending its execution. It
+    * basically saves the user preferences to a configuration file.
+    * @return Exit code
+    */
    virtual int OnExit();
 
-   std::unique_ptr <wxDocManager> doc_manager;   /**< document manager           */
-   HtArtProvider art_provider;                   /**< app-wide art provider      */
-   HtPrefs prefs;                                /**< app-wide preferences       */
+   std::unique_ptr<wxDocManager> doc_manager; /**< document manager           */
+   HtArtProvider art_provider;                /**< app-wide art provider      */
+   HtPrefs prefs;                             /**< app-wide preferences       */
 
 private:
-   wxLocale loc;                                 /**< defines our current locale */
+   wxLocale loc; /**< defines our current locale */
 };
 
 DECLARE_APP(HtApp);
 
-
-#endif //~HT_APP_HPP
+#endif  //~HT_APP_HPP

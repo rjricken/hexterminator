@@ -22,62 +22,56 @@
 #include <map>
 
 /**
-* Stores the application settings and preferences, allowing it to be
-* saved/loaded from an external XML file.
-*/
-class HtPrefs
-{
+ * Stores the application settings and preferences, allowing it to be
+ * saved/loaded from an external XML file.
+ */
+class HtPrefs {
 public:
-   HtPrefs ()
-   { setDefaultValues(); }
+   HtPrefs() { setDefaultValues(); }
 
-   void setDefaultValues ()
-   {
+   void setDefaultValues() {
       // preferences
-      values[wxT("document/visualization/columns")]         = wxT("16");
-      values[wxT("document/visualization/group-by")]        = wxT("4");
-      values[wxT("workspace/display/show-ruler")]           = wxT("true");
+      values[wxT("document/visualization/columns")] = wxT("16");
+      values[wxT("document/visualization/group-by")] = wxT("4");
+      values[wxT("workspace/display/show-ruler")] = wxT("true");
       values[wxT("workspace/display/show-cursor-position")] = wxT("true");
-      values[wxT("workspace/display/show-mouse-position")]  = wxT("true");
-      values[wxT("workspace/display/scroll-past-ends")]     = wxT("true");
+      values[wxT("workspace/display/show-mouse-position")] = wxT("true");
+      values[wxT("workspace/display/scroll-past-ends")] = wxT("true");
 
       // ui-state
-      values[wxT("window/maximized")]    = wxT("true");
-      values[wxT("window/centered")]     = wxT("true");
-      values[wxT("window/position-x")]   = wxT("0");
-      values[wxT("window/position-y")]   = wxT("0");
-      values[wxT("window/size-x")]       = wxT("450");
-      values[wxT("window/size-y")]       = wxT("460");
+      values[wxT("window/maximized")] = wxT("true");
+      values[wxT("window/centered")] = wxT("true");
+      values[wxT("window/position-x")] = wxT("0");
+      values[wxT("window/position-y")] = wxT("0");
+      values[wxT("window/size-x")] = wxT("450");
+      values[wxT("window/size-y")] = wxT("460");
    }
 
    /**
-   * Gets the value of the specified property.
-   * @param id property name
-   * @return The property value (as wxString).
-   */
-   wxString get (const wxString &id) { return values[id]; }
+    * Gets the value of the specified property.
+    * @param id property name
+    * @return The property value (as wxString).
+    */
+   wxString get(const wxString &id) { return values[id]; }
 
    /**
-   * Gets the boolean value of the specified property. Optionally,
-   * you can change the default comparison string.
-   * @param id property name
-   * @param comp (optional) comparison string
-   * @return The property value (as a bool).
-   */
-   bool getBool (const wxString &id, const wxChar *comp = wxT("true"))
-   { return values[id] == comp; }
+    * Gets the boolean value of the specified property. Optionally,
+    * you can change the default comparison string.
+    * @param id property name
+    * @param comp (optional) comparison string
+    * @return The property value (as a bool).
+    */
+   bool getBool(const wxString &id, const wxChar *comp = wxT("true")) { return values[id] == comp; }
 
    /**
-   * Gets the value of the specified property converted to integer.
-   * @param id property name
-   * @return The property value (as int).
-   */
-   int getInt (const wxString &id)
-   { return wxAtoi(values[id]); }
+    * Gets the value of the specified property converted to integer.
+    * @param id property name
+    * @return The property value (as int).
+    */
+   int getInt(const wxString &id) { return wxAtoi(values[id]); }
 
-
-private: 
-   std::map <wxString, wxString> values; /*< preferences (name/value pair) */
+private:
+   std::map<wxString, wxString> values; /*< preferences (name/value pair) */
 };
 
-#endif //~HT_PREFS_HPP
+#endif  //~HT_PREFS_HPP

@@ -31,8 +31,7 @@
 #define HT_CONFIG_FILE wxT("config.xml")
 #define HT_BUILD wxT(__DATE__) wxT(" ") wxT(__TIME__)
 
-enum
-{
+enum {
    // menu items with predefined IDs
    HT_FileNew = wxID_NEW,
    HT_FileOpen = wxID_OPEN,
@@ -86,8 +85,7 @@ enum
  * HtArtProvider Art Ids                                    *
  *----------------------------------------------------------*/
 #define HTArtId_MainTb wxART_MAKE_ART_ID(HTArtId_MainTb)
-enum
-{
+enum {
    HTArt_New,
    HTArt_Open,
    HTArt_Save,
@@ -107,21 +105,13 @@ enum
 };
 
 #define HTArtId_NavTb wxART_MAKE_ART_ID(HTArtId_NavTb)
-enum
-{
-   HTArt_SearchBack,
-   HTArt_SearchForw
-};
+enum { HTArt_SearchBack, HTArt_SearchForw };
 
 #define HTArtId_ViewTb wxART_MAKE_ART_ID(HTArtId_ViewTb)
-enum
-{
-   HTArt_AddTable
-};
+enum { HTArt_AddTable };
 
 #define HTArtId_Common wxART_MAKE_ART_ID(HTArtId_Icons)
-enum
-{
+enum {
    HTArt_Close,
    HTArt_Exit,
    HTArt_IncreaseFont,
@@ -148,4 +138,4 @@ enum
    HTArt_Options
 };
 
-#endif //~HT_CONSTANTS_HPP
+#endif  //~HT_CONSTANTS_HPP

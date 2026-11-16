@@ -32,14 +32,15 @@ BEGIN_EVENT_TABLE(HexCanvas, wxScrolledWindow)
    EVT_CHAR_HOOK(HexCanvas::OnKeyDown)
    EVT_SIZE(HexCanvas::OnSize)
    EVT_MOUSEWHEEL(HexCanvas::OnMouseWheel)
-   //EVT_SCROLLWIN(HexCanvas::OnScroll)
+   // EVT_SCROLLWIN(HexCanvas::OnScroll)
    EVT_SET_FOCUS(HexCanvas::OnSetFocus)
    EVT_KILL_FOCUS(HexCanvas::OnKillFocus)
 END_EVENT_TABLE()
 
 HexCanvas::HexCanvas(wxWindow *parent, HexView *view)
-:  wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL | wxHSCROLL | wxALWAYS_SHOW_SB | wxWANTS_CHARS),
-   m_view(view) {
+    : wxScrolledWindow(
+         parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL | wxHSCROLL | wxALWAYS_SHOW_SB | wxWANTS_CHARS),
+      m_view(view) {
    wxSize screen = wxGetDisplaySize();
    m_buffer.reset(new wxBitmap(screen.x, screen.y));
 
@@ -98,7 +99,7 @@ void HexCanvas::OnMouseWheel(wxMouseEvent &event) {
       int lines = event.GetLinesPerAction();
       int count = event.GetWheelRotation() / event.GetWheelDelta();
       count *= lines;
-      
+
       m_view->DoMouseWheel(count);
    }
 }
@@ -129,10 +130,8 @@ void HexCanvas::OnKillFocus(wxFocusEvent &event) {
 BEGIN_EVENT_TABLE(HexFrame, wxAuiMDIChildFrame)
 END_EVENT_TABLE()
 
-HexFrame::HexFrame(HexView *vw, wxAuiMDIParentFrame *parent, wxWindowID id, const wxString &title):
-wxAuiMDIChildFrame(parent, id, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE),
-m_view(vw)
-{
+HexFrame::HexFrame(HexView *vw, wxAuiMDIParentFrame *parent, wxWindowID id, const wxString &title)
+    : wxAuiMDIChildFrame(parent, id, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE), m_view(vw) {
    wxLogDebug("[HexFrame] created at 0x%llX.", reinterpret_cast<uint64_t>(this));
 
    m_canvas = new HexCanvas(this, vw);
@@ -149,44 +148,36 @@ m_view(vw)
    m_canvas->Bind(wxEVT_SCROLLWIN_THUMBTRACK, &HexView::OnScroll, m_view);
    m_canvas->Bind(wxEVT_SCROLLWIN_THUMBRELEASE, &HexView::OnScroll, m_view);
 
-  
    m_view->SetFrame(this);
 }
 
-HexFrame::~HexFrame()
-{
+HexFrame::~HexFrame() {
    wxLogDebug("[HexFrame] at 0x%llX destroyed.", reinterpret_cast<uint64_t>(this));
 }
 
-void HexFrame::OnSize(wxSizeEvent &event)
-{
+void HexFrame::OnSize(wxSizeEvent &event) {
    wxLogDebug("<<Flow>> HwxFrame::OnSize");
 
    m_view->OnSize(event);
    Refresh(), Update();
 }
 
-void HexFrame::OnEraseBackground(wxEraseEvent &WXUNUSED(event))
-{
+void HexFrame::OnEraseBackground(wxEraseEvent &WXUNUSED(event)) {
    // do nothing, prevents flickering
 }
 
-void HexFrame::OnLeftDown (wxMouseEvent &event)
-{
+void HexFrame::OnLeftDown(wxMouseEvent &event) {
    SetFocus();
    m_view->OnLeftDown(event);
 }
 
-void HexFrame::OnLeftUp (wxMouseEvent &event)
-{
+void HexFrame::OnLeftUp(wxMouseEvent &event) {
    m_view->OnLeftUp(event);
 }
 
-void HexFrame::OnMouseWheel (wxMouseEvent &event)
-{
+void HexFrame::OnMouseWheel(wxMouseEvent &event) {
    // y axis
-   if (event.GetWheelAxis() == 0)
-   {
+   if (event.GetWheelAxis() == 0) {
       /* lines - the number of lines per wheel rotation configured in the operational system
          delta - a value which represents a whole rotation
          rotation - number of times the wheel rotated, expressed in number os deltas */
@@ -199,20 +190,17 @@ void HexFrame::OnMouseWheel (wxMouseEvent &event)
    }
 }
 
-void HexFrame::OnScroll (wxScrollWinEvent &event)
-{
+void HexFrame::OnScroll(wxScrollWinEvent &event) {
    wxLogDebug("<<Flow>> HwxFrame::OnScroll");
 
    m_view->OnScroll(event);
 }
 
-void HexFrame::OnMotion (wxMouseEvent &event)
-{
+void HexFrame::OnMotion(wxMouseEvent &event) {
    m_view->OnMotion(event);
 }
 
-void HexFrame::OnLeaveWindow (wxMouseEvent &event)
-{
+void HexFrame::OnLeaveWindow(wxMouseEvent &event) {
    m_view->OnLeaveWindow(event);
 }
 
@@ -220,10 +208,8 @@ void HexFrame::OnLeaveWindow (wxMouseEvent &event)
    O evento EVT_CHAR_HOOK � direcionado para c� porque sen�o outros Event Handlers
    na hierarquia acabam monopolizando algumas teclas que s�o usadas na navega��o do HexView.
 */
-void HexFrame::OnKeyDown (wxKeyEvent &event)
-{
-   switch (event.GetKeyCode())
-   {
+void HexFrame::OnKeyDown(wxKeyEvent &event) {
+   switch (event.GetKeyCode()) {
       case WXK_TAB:
          if (event.ControlDown())
             break;
@@ -236,44 +222,21 @@ void HexFrame::OnKeyDown (wxKeyEvent &event)
    event.Skip();
 }
 
-void HexFrame::OnPaint(wxPaintEvent &WXUNUSED(event))
-{
+void HexFrame::OnPaint(wxPaintEvent &WXUNUSED(event)) {
    wxBufferedPaintDC bdc(this, *m_buffer);
    m_view->OnDraw(&bdc);
 }
 
-void HexFrame::OnSetFocus(wxFocusEvent &event)
-{
+void HexFrame::OnSetFocus(wxFocusEvent &event) {
    wxLogStatus("[HexFrame] ::OnSetFocus event");
 
    if (m_view)
       m_view->OnSetFocus(event);
-
 }
 
-void HexFrame::OnKillFocus (wxFocusEvent &event)
-{
+void HexFrame::OnKillFocus(wxFocusEvent &event) {
    wxLogStatus("[HexFrame] ::OnKillFocus event");
 
    if (m_view)
       m_view->OnKillFocus(event);
 }
-
-/*#ifndef NDEBUG
-#include "constants.hpp"
-#include "debug_panel.hpp"
-
-void HexFrame::OnAddToDebugPanel ()
-{
-   auto *dbgPanel = dynamic_cast<DebugPanel *>(FindWindowById(HT_DebugPanel));
-   GetView()->AddToDebugPanel(dbgPanel);
-}
-
-void HexFrame::OnRemoveFromDebugPanel ()
-{
-   auto *dbgPanel = dynamic_cast<DebugPanel *>(FindWindowById(HT_DebugPanel));
-
-   if (dbgPanel)
-      GetView()->RemoveFromDebugPanel(dbgPanel);
-}
-#endif*/

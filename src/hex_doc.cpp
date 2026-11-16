@@ -21,32 +21,25 @@
 
 IMPLEMENT_DYNAMIC_CLASS(HexDoc, wxDocument)
 
-HexDoc::HexDoc ()
-{
+HexDoc::HexDoc() {
    wxLogDebug("[HexDoc] created at 0x%llX.", reinterpret_cast<uint64_t>(this));
-
 }
 
-HexDoc::~HexDoc ()
-{
+HexDoc::~HexDoc() {
    wxLogDebug("[HexDoc] at 0x%llX destroyed.", reinterpret_cast<uint64_t>(this));
-
 }
 
-bool HexDoc::OnCreate (const wxString &path, long flags)
-{
+bool HexDoc::OnCreate(const wxString &path, long flags) {
    wxLogDebug("[HexDoc] ::OnCreate [%s]", path);
    return wxDocument::OnCreate(path, flags);
 }
 
-bool HexDoc::OnOpenDocument (const wxString &filename)
-{
+bool HexDoc::OnOpenDocument(const wxString &filename) {
    if (!wxFile::Access(filename, wxFile::read))
       return false;
 
-   if (m_file.Open(filename, wxFile::read) && m_file.IsOpened())
-   {
-      //m_filepath = filename;
+   if (m_file.Open(filename, wxFile::read) && m_file.IsOpened()) {
+      // m_filepath = filename;
       return true;
    }
 

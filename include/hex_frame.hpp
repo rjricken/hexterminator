@@ -36,8 +36,7 @@
 
 class HexView;
 
-class HexCanvas : public wxScrolledWindow
-{
+class HexCanvas : public wxScrolledWindow {
 public:
    HexCanvas(wxWindow *parent, HexView *view);
    virtual ~HexCanvas();
@@ -62,8 +61,7 @@ private:
    DECLARE_EVENT_TABLE()
 };
 
-class HexFrame : public wxAuiMDIChildFrame
-{
+class HexFrame : public wxAuiMDIChildFrame {
 public:
    HexFrame(HexView *view, wxAuiMDIParentFrame *parent, wxWindowID id, const wxString &title);
    virtual ~HexFrame();
@@ -76,18 +74,14 @@ public:
    // will be used to adjust the caret when selection gots implemented
    void SetSel(wxPoint &start, wxPoint &end);
 
-   void ShowCaret(bool show = true)
-   {
+   void ShowCaret(bool show = true) {
       if (show && !GetCanvas()->GetCaret()->IsVisible())
-         GetCanvas()->GetCaret()->Show(); //, wxLogStatus("Caret is now visible");
+         GetCanvas()->GetCaret()->Show();  //, wxLogStatus("Caret is now visible");
       else if (!show && GetCanvas()->GetCaret()->IsVisible())
-         GetCanvas()->GetCaret()->Hide(); //, wxLogStatus("Caret is now hidden");
+         GetCanvas()->GetCaret()->Hide();  //, wxLogStatus("Caret is now hidden");
    }
 
-   void HideCaret()
-   {
-      ShowCaret(false);
-   }
+   void HideCaret() { ShowCaret(false); }
 
    // -- Event handlers
    void OnPaint(wxPaintEvent &event);
@@ -111,4 +105,4 @@ private:
    DECLARE_EVENT_TABLE()
 };
 
-#endif // HT_HEXFRAME_HPP
+#endif  // HT_HEXFRAME_HPP

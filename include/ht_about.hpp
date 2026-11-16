@@ -36,43 +36,40 @@
 #include <memory>
 
 /**
-* Implements the about dialog box, which displays information about the program.
-* ie: version, build, license, author(s).
-*/
-class HtAbout : public wxDialog
-{
+ * Implements the about dialog box, which displays information about the program.
+ * ie: version, build, license, author(s).
+ */
+class HtAbout : public wxDialog {
 public:
-   HtAbout (wxWindow* parent, const wxString& title, const wxSize& size = wxDefaultSize) :
-   wxDialog(parent, wxID_ANY, title, wxDefaultPosition, size)
-   {
+   HtAbout(wxWindow *parent, const wxString &title, const wxSize &size = wxDefaultSize)
+       : wxDialog(parent, wxID_ANY, title, wxDefaultPosition, size) {
       wxBoxSizer *global_sz = new wxBoxSizer(wxVERTICAL);
       wxButton *close = new wxButton(this, wxID_OK, _("&Close"), wxPoint(225, 240));
       global_sz->AddStretchSpacer(1);
       global_sz->Add(close, wxSizerFlags().Right().Border(wxLEFT | wxBOTTOM | wxRIGHT, 10));
       SetSizer(global_sz);
 
-      //wxHyperlinkCtrl *url = new wxHyperlinkCtrl(this, wxID_ANY, _("Project's Website"), MM_PROJECT_URL);
-      //url->SetPosition(wxPoint(192, 195));
-      //url->SetToolTip(_("Visit project homepage, at F.U.T."));
+      // wxHyperlinkCtrl *url = new wxHyperlinkCtrl(this, wxID_ANY, _("Project's Website"), MM_PROJECT_URL);
+      // url->SetPosition(wxPoint(192, 195));
+      // url->SetToolTip(_("Visit project homepage, at F.U.T."));
 
       ht_logo.reset(new wxImage(getResourcePath(("images/logo.png")), wxT("image/png")));
    }
 
-   ~HtAbout () {}
+   ~HtAbout() {}
 
    /**
-   * This method is called when the window needs to be repainted.
-   * @param event not used
-   */
-   void OnPaint(wxPaintEvent &WXUNUSED(event))
-   {
+    * This method is called when the window needs to be repainted.
+    * @param event not used
+    */
+   void OnPaint(wxPaintEvent &WXUNUSED(event)) {
       wxPaintDC dc(this);
 
       wxSize clientsz = GetClientSize();
       dc.DrawBitmap(wxBitmap(*ht_logo), (clientsz.x / 2) - (ht_logo->GetWidth() / 2), 10, true);
 
-      //dc.SetFont(wxFont(10, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
-      //dc.DrawText(wxT("MONKEY-MOORE"), 190, 50);
+      // dc.SetFont(wxFont(10, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
+      // dc.DrawText(wxT("MONKEY-MOORE"), 190, 50);
 
       /*dc.SetFont(wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
       dc.DrawText(wxString::Format(_("Version %s (build %s)"), MM_VERSION, MM_BUILD), 192, 65);
@@ -84,7 +81,7 @@ public:
    }
 
 private:
-   std::unique_ptr <wxImage> ht_logo;
+   std::unique_ptr<wxImage> ht_logo;
 
    DECLARE_EVENT_TABLE()
 };
@@ -93,4 +90,4 @@ BEGIN_EVENT_TABLE(HtAbout, wxDialog)
    EVT_PAINT(HtAbout::OnPaint)
 END_EVENT_TABLE()
 
-#endif //~HT_ABOUT_HPP
+#endif  //~HT_ABOUT_HPP

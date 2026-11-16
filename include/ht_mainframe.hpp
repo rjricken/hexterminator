@@ -36,8 +36,7 @@
 #include "debug_panel.hpp"
 #endif
 
-class HtMainFrame : public wxAuiMDIParentFrame
-{
+class HtMainFrame : public wxAuiMDIParentFrame {
 public:
    HtMainFrame(const wxString &title, const wxPoint &pos, const wxSize &size, long flags = wxDEFAULT_FRAME_STYLE);
    ~HtMainFrame();
@@ -51,7 +50,6 @@ public:
    void OnClose(wxCloseEvent &event);
    void OnUpdateUI(wxUpdateUIEvent &event);
    void OnNotebookPageClose(wxAuiNotebookEvent &event);
-   // void OnNotebookPageChange(wxAuiNotebookEvent &event);
    void OnEditUndoDropDown(wxAuiToolBarEvent &event);
    void OnFileOpenDropDown(wxAuiToolBarEvent &event);
    void OnRecentFilesSelected(wxCommandEvent &event);
@@ -65,8 +63,7 @@ public:
 
    void DoOpenFile(const wxString &path);
 
-   HexView *GetActiveView() const
-   {
+   HexView *GetActiveView() const {
       wxAuiNotebook *nb = GetNotebook();
 
       return nb->GetPageCount() ? static_cast<HexFrame *>(nb->GetPage(nb->GetSelection()))->GetView() : 0;
@@ -87,4 +84,4 @@ private:
    DECLARE_EVENT_TABLE()
 };
 
-#endif // HT_MAINFRAME_HPP
+#endif  // HT_MAINFRAME_HPP

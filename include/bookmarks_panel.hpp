@@ -20,7 +20,7 @@
 #define HT_BOOKMARKSPANEL_HPP
 
 #include <wx/wxprec.h>
- 
+
 #ifdef __BORLANDC__
 #pragma hdrstop
 #endif
@@ -31,20 +31,17 @@
 
 #include <wx/dcbuffer.h>
 
-class BookmarksPanel : public wxPanel
-{
+class BookmarksPanel : public wxPanel {
 public:
-   BookmarksPanel (wxWindow *parent, wxWindowID id)
-      : wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_NONE)
-   {
+   BookmarksPanel(wxWindow *parent, wxWindowID id)
+       : wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_NONE) {
       SetBackgroundColour(wxColour(255, 255, 255));
       new wxStaticText(this, wxID_ANY, _("Not implemented yet!"), wxPoint(10, 20));
    }
 
-   ~BookmarksPanel () { };
+   ~BookmarksPanel() {};
 
-   void OnPaint (wxPaintEvent &WXUNUSED(event))
-   {
+   void OnPaint(wxPaintEvent &WXUNUSED(event)) {
       wxPaintDC dc(this);
 
       // draws a nice grey line below the pane title
@@ -60,4 +57,4 @@ BEGIN_EVENT_TABLE(BookmarksPanel, wxPanel)
    EVT_PAINT(BookmarksPanel::OnPaint)
 END_EVENT_TABLE()
 
-#endif //~HT_BOOKMARKSPANEL_HPP
+#endif  //~HT_BOOKMARKSPANEL_HPP

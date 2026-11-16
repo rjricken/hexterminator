@@ -32,33 +32,31 @@
 #include <wx/docview.h>
 #include <wx/file.h>
 
-class HexDoc : public wxDocument
-{
+class HexDoc : public wxDocument {
 public:
-   HexDoc ();
-   ~HexDoc ();
+   HexDoc();
+   ~HexDoc();
 
-   wxFileOffset length () {
+   wxFileOffset length() {
       wxASSERT(m_file.IsOpened());
       return m_file.Length();
    }
 
-   size_t GetData (unsigned char *buf, size_t len, wxFileOffset address = 0)
-   {
+   size_t GetData(unsigned char *buf, size_t len, wxFileOffset address = 0) {
       wxASSERT(address >= 0);
 
       m_file.Seek(address);
       return m_file.Read(buf, len);
    }
 
-   virtual bool OnOpenDocument (const wxString &filename);
-   virtual bool OnCreate (const wxString &path, long flags = 0);
+   virtual bool OnOpenDocument(const wxString &filename);
+   virtual bool OnCreate(const wxString &path, long flags = 0);
 
 private:
-   //wxString m_filepath;
+   // wxString m_filepath;
    wxFile m_file;
 
    DECLARE_DYNAMIC_CLASS(HexDoc)
 };
 
-#endif //~HT_HEXDOC_HPP
+#endif  //~HT_HEXDOC_HPP

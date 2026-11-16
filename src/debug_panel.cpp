@@ -23,8 +23,7 @@
 
 DebugPanel::DebugPanel(wxWindow *parent, wxWindowID id)
     : wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_NONE),
-      m_watches(std::make_shared<WatchMap>())
-{
+      m_watches(std::make_shared<WatchMap>()) {
    m_list = new wxListView(this, HT_DebugPanel_List, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_SINGLE_SEL);
    m_list->InsertColumn(0, "Property", wxLIST_FORMAT_LEFT, 200);
    m_list->InsertColumn(1, "Value", wxLIST_FORMAT_LEFT, 130);
@@ -38,78 +37,63 @@ DebugPanel::DebugPanel(wxWindow *parent, wxWindowID id)
    StartUpdateTimer();
 }
 
-DebugPanel::~DebugPanel()
-{
+DebugPanel::~DebugPanel() {
    StopUpdateTimer();
 }
 
-DebugPanel::Watch DebugPanel::AddWatch(const wxString &name, Getter getter)
-{
+DebugPanel::Watch DebugPanel::AddWatch(const wxString &name, Getter getter) {
    const std::uint64_t id = m_nextId++;
 
-   m_watches->insert_or_assign(name, Entry{std::move(getter), wxString(), id});
+   m_watches->insert_or_assign(name, Entry {std::move(getter), wxString(), id});
 
    return Watch(m_watches, name, id);
 }
 
-void DebugPanel::StartUpdateTimer(int intervalMs)
-{
-   if (m_timer)
-   {
+void DebugPanel::StartUpdateTimer(int intervalMs) {
+   if (m_timer) {
       m_timer->Start(intervalMs);
    }
 }
 
-void DebugPanel::StopUpdateTimer()
-{
-   if (m_timer)
-   {
+void DebugPanel::StopUpdateTimer() {
+   if (m_timer) {
       m_timer->Stop();
    }
 }
 
-void DebugPanel::OnUpdateTimer(wxTimerEvent &WXUNUSED(event))
-{
+void DebugPanel::OnUpdateTimer(wxTimerEvent &WXUNUSED(event)) {
    updateList();
 }
 
-void DebugPanel::updateList()
-{
+void DebugPanel::updateList() {
    bool rebuild = m_list->GetItemCount() != static_cast<long>(m_watches->size());
 
-   if (!rebuild)
-   {
+   if (!rebuild) {
       long row = 0;
-      for (const auto &kv : *m_watches)
-      {
-         if (m_list->GetItemText(row++) != kv.first)
-         {
+      for (const auto &kv : *m_watches) {
+         if (m_list->GetItemText(row++) != kv.first) {
             rebuild = true;
             break;
          }
       }
    }
 
-   if (rebuild)
-   {
+   if (rebuild) {
       m_list->DeleteAllItems();
 
       long row = 0;
-      for (auto &kv : *m_watches)
-      {
+      for (auto &kv : *m_watches) {
          m_list->InsertItem(row++, kv.first);
          kv.second.last.clear();
       }
    }
 
    long row = 0;
-   for (auto &kv : *m_watches)
-   {
+   for (auto &kv : *m_watches) {
       Entry &entry = kv.second;
       wxString now = entry.get();
 
-      if (rebuild || now != entry.last)
-      {
+      if (rebuild || now != entry.last) {
          m_list->SetItem(row, 1, now);
          entry.last = std::move(now);
       }

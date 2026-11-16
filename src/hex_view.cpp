@@ -25,8 +25,7 @@
 
 IMPLEMENT_DYNAMIC_CLASS(HexView, wxView)
 
-HexView::HexView()
-{
+HexView::HexView() {
    wxLogDebug("[HexView] created at 0x%llX.", reinterpret_cast<uint64_t>(this));
 
    m_base = wxRect(0, 0, 0, 0);
@@ -35,10 +34,10 @@ HexView::HexView()
    view_data_sz = 0;
 
    // -- Colors setup
-   line_clr.Set(0, 105, 153);     // dark cyan
-   addrhex_clr.Set(128, 0, 0);    // dark red
-   addrbg_clr.Set(192, 224, 240); // cyan
-   addrhl_clr.Set(255, 160, 128); // beige
+   line_clr.Set(0, 105, 153);      // dark cyan
+   addrhex_clr.Set(128, 0, 0);     // dark red
+   addrbg_clr.Set(192, 224, 240);  // cyan
+   addrhl_clr.Set(255, 160, 128);  // beige
 
    HtPrefs &prefs = wxGetApp().prefs;
 
@@ -52,15 +51,14 @@ HexView::HexView()
    m_start_line = 0;
    m_end_line = 0;
 
-   m_edit_char = false;  // caret starts in hex area
-   m_mouse_down = false; // mouse is initially up
+   m_edit_char = false;   // caret starts in hex area
+   m_mouse_down = false;  // mouse is initially up
    m_mouse_over = wxPoint(-1, -1);
    m_scrollpos = wxPoint(0, 0);
    m_caretpos = wxPoint(0, 0);
 }
 
-HexView::~HexView()
-{
+HexView::~HexView() {
    wxLogDebug("[HexView] at 0x%llX destroyed.", reinterpret_cast<uint64_t>(this));
 
    if (view_data)
@@ -69,16 +67,14 @@ HexView::~HexView()
    m_frame->SetView(nullptr);
 }
 
-bool HexView::OnCreate(wxDocument *doc, long WXUNUSED(flags))
-{
+bool HexView::OnCreate(wxDocument *doc, long WXUNUSED(flags)) {
    wxLogStatus("[HexView] OnCreate called.");
    // HexDoc *hdoc = (HexDoc *)doc;
 
    return true;
 }
 
-void HexView::OnLeftDown(wxMouseEvent &event)
-{
+void HexView::OnLeftDown(wxMouseEvent &event) {
    wxPoint point = event.GetPosition();
 
    bool same_pos = false;
@@ -88,8 +84,7 @@ void HexView::OnLeftDown(wxMouseEvent &event)
    if (!m_base.Contains(point))
       return;
 
-   if (point.x >= 0 && point.x <= CharCol2Pos(0) - text_sz.x / 2)
-   {
+   if (point.x >= 0 && point.x <= CharCol2Pos(0) - text_sz.x / 2) {
       // -- we have a click in the hex area
       int col = Pos2HexCol(point.x);
 
@@ -113,8 +108,7 @@ void HexView::OnLeftDown(wxMouseEvent &event)
       m_mouse_down = true;
       UpdateCaret();
    }
-   else if (point.x >= CharCol2Pos(0) && point.x <= CharCol2Pos(m_columns) + text_sz.x)
-   {
+   else if (point.x >= CharCol2Pos(0) && point.x <= CharCol2Pos(m_columns) + text_sz.x) {
       // -- we have a click in the char area
       int col = Pos2CharCol(point.x);
 
@@ -141,8 +135,7 @@ void HexView::OnLeftDown(wxMouseEvent &event)
       m_frame->GetCanvas()->Refresh(), m_frame->GetCanvas()->Update();
 }
 
-void HexView::OnLeftUp(wxMouseEvent &WXUNUSED(event))
-{
+void HexView::OnLeftUp(wxMouseEvent &WXUNUSED(event)) {
    if (!m_frame->GetCanvas()->GetCaret()->IsVisible())
       m_frame->GetCanvas()->GetCaret()->Show();
 
@@ -150,10 +143,10 @@ void HexView::OnLeftUp(wxMouseEvent &WXUNUSED(event))
    m_frame->GetCanvas()->Refresh(), m_frame->GetCanvas()->Update();
 }
 
-void HexView::OnMotion(wxMouseEvent &event)
-{
+void HexView::OnMotion(wxMouseEvent &event) {
    const wxPoint pos = event.GetPosition();
-   wxRect edit_area = wxRect(wxPoint(m_addr_width * text_sz.x, m_base.y), wxPoint(CharCol2Pos(m_columns) + text_sz.x, m_base.GetBottom()));
+   wxRect edit_area = wxRect(
+      wxPoint(m_addr_width * text_sz.x, m_base.y), wxPoint(CharCol2Pos(m_columns) + text_sz.x, m_base.GetBottom()));
 
    // update cursor based on what it's hovering
    m_frame->GetCanvas()->SetCursor(edit_area.Contains(pos) ? wxCURSOR_IBEAM : wxCURSOR_ARROW);
@@ -182,41 +175,36 @@ void HexView::OnMotion(wxMouseEvent &event)
       m_frame->GetCanvas()->Refresh(), m_frame->GetCanvas()->Update();
 }
 
-void HexView::OnLeaveWindow(wxMouseEvent &WXUNUSED(event))
-{
+void HexView::OnLeaveWindow(wxMouseEvent &WXUNUSED(event)) {
    m_mouse_over = wxPoint(-1, -1);
    m_frame->GetCanvas()->Refresh(), m_frame->GetCanvas()->Update();
 }
 
-void HexView::OnKeyDown(wxKeyEvent &event)
-{
-   switch (event.GetKeyCode())
-   {
-   case WXK_LEFT:
-   case WXK_RIGHT:
-   case WXK_UP:
-   case WXK_DOWN:
-   case WXK_END:
-   case WXK_HOME:
-      MovePos(event.GetKeyCode(), event.ControlDown(), event.ShiftDown(), event.AltDown());
-      break;
+void HexView::OnKeyDown(wxKeyEvent &event) {
+   switch (event.GetKeyCode()) {
+      case WXK_LEFT:
+      case WXK_RIGHT:
+      case WXK_UP:
+      case WXK_DOWN:
+      case WXK_END:
+      case WXK_HOME:
+         MovePos(event.GetKeyCode(), event.ControlDown(), event.ShiftDown(), event.AltDown());
+         break;
 
-   case WXK_TAB:
-      m_edit_char = !m_edit_char;
-      UpdateCaret();
+      case WXK_TAB:
+         m_edit_char = !m_edit_char;
+         UpdateCaret();
 
-      m_frame->GetCanvas()->Refresh(), m_frame->GetCanvas()->Update();
-      break;
+         m_frame->GetCanvas()->Refresh(), m_frame->GetCanvas()->Update();
+         break;
 
-   default:
-      event.Skip();
+      default:
+         event.Skip();
    }
 }
 
-void HexView::OnScroll(wxScrollWinEvent &event)
-{
-   if (event.GetOrientation() == wxVERTICAL)
-   {
+void HexView::OnScroll(wxScrollWinEvent &event) {
+   if (event.GetOrientation() == wxVERTICAL) {
       const int &type = event.GetEventType();
 
       if (type == wxEVT_SCROLLWIN_LINEUP)
@@ -228,16 +216,13 @@ void HexView::OnScroll(wxScrollWinEvent &event)
       else if (type == wxEVT_SCROLLWIN_PAGEDOWN)
          m_scrollpos.y += m_numshown;
 
-      else if (type == wxEVT_SCROLLWIN_THUMBTRACK)
-      {
+      else if (type == wxEVT_SCROLLWIN_THUMBTRACK) {
          m_scrollpos.y = event.GetPosition();
       }
-      else if (type == wxEVT_SCROLL_THUMBRELEASE)
-      {
+      else if (type == wxEVT_SCROLL_THUMBRELEASE) {
          UpdateScrollbars();
       }
-      else if (type == wxEVT_SCROLLWIN_BOTTOM)
-      {
+      else if (type == wxEVT_SCROLLWIN_BOTTOM) {
          wxLogStatus(wxT("[HexFrame] Vertical SB: Received EVT_SCROLLWIN_BOTTOM event"));
          m_scrollpos.y = m_numlines;
       }
@@ -251,19 +236,16 @@ void HexView::OnScroll(wxScrollWinEvent &event)
    UpdateCaret();
 }
 
-void HexView::OnSize(wxSizeEvent &WXUNUSED(event))
-{
+void HexView::OnSize(wxSizeEvent &WXUNUSED(event)) {
    RecalcDisplay();
 }
 
-void HexView::OnSetFocus(wxFocusEvent &event)
-{
+void HexView::OnSetFocus(wxFocusEvent &event) {
    if (!m_frame->GetCanvas()->GetCaret()->IsVisible())
       m_frame->GetCanvas()->GetCaret()->Show();
 }
 
-void HexView::OnKillFocus(wxFocusEvent &event)
-{
+void HexView::OnKillFocus(wxFocusEvent &event) {
    if (m_frame->GetCanvas()->GetCaret()->IsVisible())
       m_frame->GetCanvas()->GetCaret()->Hide();
 }
@@ -279,21 +261,20 @@ No HexEdit, a renderiza��o � composta das seguintes etapas:
 + renderiza��o dos hexadecimais e caracteres, alternadamente
 + invers�o das colunas que estiverem selecionadas
 */
-void HexView::OnDraw(wxDC *dc)
-{
+void HexView::OnDraw(wxDC *dc) {
 #if 1
    auto start = std::chrono::system_clock::now();
 #endif
 
    // -- setup
-   wxFont &font = *wxTheFontList->FindOrCreateFont(12, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Courier"));
+   wxFont &font = *wxTheFontList->FindOrCreateFont(
+      12, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Courier"));
    dc->SetFont(font);
 
    wxASSERT(m_columns > 0);
    wxASSERT(m_group_by > 0);
 
-   if (!view_data)
-   {
+   if (!view_data) {
       HexDoc *doc = (HexDoc *)GetDocument();
 
       view_data = new unsigned char[doc->length()];
@@ -305,7 +286,8 @@ void HexView::OnDraw(wxDC *dc)
    wxSize client_sz(m_frame->GetCanvas()->GetClientSize());
    int rulerHeight = m_show_ruler ? text_sz.y + 4 : 0;
    m_base = wxRect(0, rulerHeight, client_sz.x, client_sz.y - rulerHeight);
-   // m_base = wxRect(0, m_show_ruler ? text_sz.y + 4 : 0, client_sz.x, client_sz.y + (m_show_ruler ? text_sz.y + 4 : 0));
+   // m_base = wxRect(0, m_show_ruler ? text_sz.y + 4 : 0, client_sz.x, client_sz.y + (m_show_ruler ? text_sz.y + 4 :
+   // 0));
 
    // calculate the amount of lines we need to display and the amount of lines used by our file
    // TODO: ensure that every change in the window updates those 2 values
@@ -328,40 +310,36 @@ void HexView::OnDraw(wxDC *dc)
    DrawVerticalLine(*dc, CharCol2Pos(m_columns) + text_sz.x / 2, m_base.y - 3, m_base.GetBottom());
 
    // display current caret position highlight
-   if (!m_mouse_down && m_show_cursor_pos)
-   {
+   if (!m_mouse_down && m_show_cursor_pos) {
       dc->SetPen(wxPen(addrhex_clr));
       dc->SetBrush(wxBrush(addrhl_clr));
 
       if ((m_caretpos.y - m_start_line) >= 0)
-         dc->DrawRectangle(0, m_base.y + (m_caretpos.y - m_start_line) * text_sz.y, m_addr_width * text_sz.x - 1, text_sz.y);
+         dc->DrawRectangle(
+            0, m_base.y + (m_caretpos.y - m_start_line) * text_sz.y, m_addr_width * text_sz.x - 1, text_sz.y);
 
-      if (m_show_ruler)
-      {
+      if (m_show_ruler) {
          dc->DrawRectangle(CharCol2Pos(m_caretpos.x), 0, text_sz.x + 1, text_sz.y);
          dc->DrawRectangle(HexCol2Pos(m_caretpos.x), 0, 2 * text_sz.x + 1, text_sz.y);
       }
    }
 
    // display the horizontal ruler
-   if (m_show_ruler)
-   {
+   if (m_show_ruler) {
       dc->SetPen(wxPen(line_clr));
       dc->DrawLine(m_addr_width * text_sz.x, m_base.y - 3, client_sz.x, m_base.y - 3);
 
       dc->SetTextForeground(addrhex_clr);
       dc->SetPen(wxPen(addrhex_clr));
 
-      for (int i = 0; i < m_columns; i++)
-      {
+      for (int i = 0; i < m_columns; i++) {
          dc->DrawText(wxString::Format(wxT("%02X"), i), HexCol2Pos(i), 0);
          dc->DrawText(wxString::Format(wxT("%02X"), i).substr(1), CharCol2Pos(i), 0);
       }
    }
 
    // display which row is currently under the mouse pointer
-   if (m_mouse_over != wxPoint(-1, -1) && m_show_mouse_pos)
-   {
+   if (m_mouse_over != wxPoint(-1, -1) && m_show_mouse_pos) {
       dc->SetPen(wxPen(addrhex_clr));
       dc->SetBrush(*wxTRANSPARENT_BRUSH);
 
@@ -370,16 +348,14 @@ void HexView::OnDraw(wxDC *dc)
          dc->DrawRectangle(0, m_base.y + m_mouse_over.y * text_sz.y, m_addr_width * text_sz.x - 1, text_sz.y);
 
       // columns
-      if (m_show_ruler)
-      {
+      if (m_show_ruler) {
          dc->DrawRectangle(CharCol2Pos(m_mouse_over.x), 0, text_sz.x + 1, text_sz.y);
          dc->DrawRectangle(HexCol2Pos(m_mouse_over.x), 0, 2 * text_sz.x + 1, text_sz.y);
       }
    }
 
    // display each line, from top to bottom
-   for (int i = m_start_line; i < m_end_line; i++)
-   {
+   for (int i = m_start_line; i < m_end_line; i++) {
       // display formatted offset
       wxString offset = wxString::Format(m_addr_fmt, i * m_columns);
       dc->SetTextForeground(addrhex_clr);
@@ -388,8 +364,7 @@ void HexView::OnDraw(wxDC *dc)
       dc->SetTextForeground(*wxBLACK);
 
       // display each byte in hex (and char)
-      for (int j = i * m_columns; j < (i * m_columns) + m_columns; j++)
-      {
+      for (int j = i * m_columns; j < (i * m_columns) + m_columns; j++) {
          if (j >= view_data_sz)
             break;
 
@@ -397,27 +372,25 @@ void HexView::OnDraw(wxDC *dc)
          dc->DrawText(byte, HexCol2Pos(j % m_columns), m_base.y + (i - m_start_line) * text_sz.y);
 
          const char &c = (view_data[j] > 0x1F && view_data[j] < 0x7F) ? view_data[j] : '.';
-         dc->DrawText(wxString::Format(wxT("%c"), c), CharCol2Pos(j % m_columns), m_base.y + (i - m_start_line) * text_sz.y);
+         dc->DrawText(
+            wxString::Format(wxT("%c"), c), CharCol2Pos(j % m_columns), m_base.y + (i - m_start_line) * text_sz.y);
       }
    }
 
    // display the selected bytes in reverse video
-   wxPoint caret_pos = m_caretpos; // m_frame->GetCaretPos();
+   wxPoint caret_pos = m_caretpos;  // m_frame->GetCaretPos();
 
    dc->SetLogicalFunction(wxINVERT);
    dc->SetBrush(*wxBLACK_BRUSH);
 
-   if (caret_pos.y >= m_start_line && caret_pos.y <= m_end_line)
-   {
+   if (caret_pos.y >= m_start_line && caret_pos.y <= m_end_line) {
       caret_pos.y = (caret_pos.y - m_start_line) * text_sz.y + m_base.y;
 
-      if (!m_edit_char)
-      {
+      if (!m_edit_char) {
          int cx = CharCol2Pos(caret_pos.x);
          dc->DrawRectangle(cx, caret_pos.y, text_sz.x, text_sz.y);
       }
-      else
-      {
+      else {
          int hx = HexCol2Pos(caret_pos.x);
          dc->DrawRectangle(hx, caret_pos.y, 2 * text_sz.x, text_sz.y);
       }
@@ -431,8 +404,7 @@ void HexView::OnDraw(wxDC *dc)
 #endif
 }
 
-void HexView::DrawBackground(wxDC *dc) const
-{
+void HexView::DrawBackground(wxDC *dc) const {
    // fill the background
    dc->SetBackground(*wxWHITE_BRUSH);
    dc->Clear();
@@ -502,13 +474,11 @@ void HexView::DrawBackground(wxDC *dc) const
 #endif
 }
 
-void HexView::MovePos(int key, bool ctrl_down, bool shift_down, bool alt_down)
-{
+void HexView::MovePos(int key, bool ctrl_down, bool shift_down, bool alt_down) {
    int col = m_caretpos.x;
    int row = m_caretpos.y;
 
-   if (key == WXK_LEFT)
-   {
+   if (key == WXK_LEFT) {
       col -= 1;
 
       if (col < 0 && row == 0)
@@ -517,28 +487,23 @@ void HexView::MovePos(int key, bool ctrl_down, bool shift_down, bool alt_down)
       if (col < 0 && row > 0)
          row -= 1, col = m_columns - 1;
    }
-   else if (key == WXK_RIGHT)
-   {
+   else if (key == WXK_RIGHT) {
       if (++col == m_columns)
          col = 0, row += 1;
    }
-   else if (key == WXK_UP)
-   {
+   else if (key == WXK_UP) {
       if (--row < 0)
          row = 0;
    }
-   else if (key == WXK_DOWN)
-   {
+   else if (key == WXK_DOWN) {
       row += 1;
    }
-   else if (key == WXK_END && ctrl_down)
-   {
+   else if (key == WXK_END && ctrl_down) {
       // just make it ajust the position to the last one in the view
       row = m_numlines + 1;
       col = m_columns + 1;
    }
-   else if (key == WXK_HOME && ctrl_down)
-   {
+   else if (key == WXK_HOME && ctrl_down) {
       row = 0;
       col = 0;
    }
@@ -557,13 +522,11 @@ void HexView::MovePos(int key, bool ctrl_down, bool shift_down, bool alt_down)
     passar esse c�lculo de atualiza��o das vari�veis para uma fun��o e cham�-la caso necess�rio,
     ou ainda atualizar esses valores ap�s qualquer altera��o que os afete.
     */
-   if (m_caretpos.y >= m_end_line - m_additional_line ? 1 : 0)
-   {
+   if (m_caretpos.y >= m_end_line - m_additional_line ? 1 : 0) {
       wxLogStatus("I need to scroll down 1 line");
       m_scrollpos.y += 1;
    }
-   else if (m_caretpos.y < m_start_line)
-   {
+   else if (m_caretpos.y < m_start_line) {
       wxLogStatus("I need to scroll up 1 line");
       m_scrollpos.y -= 1;
    }
@@ -580,19 +543,20 @@ void HexView::MovePos(int key, bool ctrl_down, bool shift_down, bool alt_down)
  * of settings or when the application window is resized or changed
  * in any other way.
  */
-void HexView::RecalcDisplay()
-{
+void HexView::RecalcDisplay() {
    // wxLogDebug("<<Flow>> HexView::RecalcDisplay");
 
    wxClientDC dc(m_frame->GetCanvas());
-   dc.SetFont(*wxTheFontList->FindOrCreateFont(12, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Courier")));
+   dc.SetFont(*wxTheFontList->FindOrCreateFont(
+      12, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Courier")));
 
    text_sz = wxSize(dc.GetCharWidth(), dc.GetCharHeight());
    m_addr_width = wxString::Format(wxT("%lX:"), view_data_sz).size();
    m_addr_fmt = wxString::Format(wxT("%%0%dX:"), m_addr_width - 1);
 
    wxSize client_sz = m_frame->GetCanvas()->GetClientSize();
-   // m_base = wxRect(0, m_show_ruler ? text_sz.y + 4 : 0, client_sz.x, client_sz.y + (m_show_ruler ? text_sz.y + 4 : 0));
+   // m_base = wxRect(0, m_show_ruler ? text_sz.y + 4 : 0, client_sz.x, client_sz.y + (m_show_ruler ? text_sz.y + 4 :
+   // 0));
    int rulerHeight = m_show_ruler ? text_sz.y + 4 : 0;
    m_base = wxRect(0, rulerHeight, client_sz.x, client_sz.y - rulerHeight);
 
@@ -614,14 +578,12 @@ void HexView::RecalcDisplay()
  * This may be called anytime another method needs an updates state
  * before refreshing the view (OnDraw).
  */
-void HexView::RecalcViewState()
-{
+void HexView::RecalcViewState() {
    m_start_line = m_scrollpos.y;
    m_end_line = std::min(m_start_line + m_numshown, m_numlines);
 }
 
-void HexView::UpdateScrollbars()
-{
+void HexView::UpdateScrollbars() {
    // wxLogDebug("<<Flow>> HexView::UpdateScrollbars");
    wxSize clientsz = m_frame->GetCanvas()->GetClientSize();
    m_numshown = floor(float(clientsz.y) / text_sz.y);
@@ -635,17 +597,20 @@ void HexView::UpdateScrollbars()
       extra += m_numshown - (m_end_line - m_start_line);
 
    if (m_frame->HasFocus())
-      wxLogStatus("[HexView] UpdateScrollbars: m_numlines(%ld), m_numshown(%ld), extra(%d)", m_numlines + extra, m_numshown, extra);
+      wxLogStatus("[HexView] UpdateScrollbars: m_numlines(%ld), m_numshown(%ld), extra(%d)",
+         m_numlines + extra,
+         m_numshown,
+         extra);
 
    // show/adjust or hide the vertical scrollbar
    if (m_numlines >= m_numshown)
-      m_frame->GetCanvas()->SetScrollbar(wxVERTICAL, m_scrollpos.y, m_numshown, m_numlines + extra /* + m_numshown - 1*/, true);
+      m_frame->GetCanvas()->SetScrollbar(
+         wxVERTICAL, m_scrollpos.y, m_numshown, m_numlines + extra /* + m_numshown - 1*/, true);
    else
       m_frame->GetCanvas()->SetScrollbar(wxVERTICAL, 0, 2, 1, true);
 }
 
-void HexView::DoMouseWheel(const int lines)
-{
+void HexView::DoMouseWheel(const int lines) {
    // negative scrolls upwards, not downwards
    m_scrollpos.y += -lines;
 
@@ -662,8 +627,7 @@ void HexView::DoMouseWheel(const int lines)
  * @param pos mouse pointer position
  * @return Closest hex area column
  */
-int HexView::Pos2HexCol(const int pos) const
-{
+int HexView::Pos2HexCol(const int pos) const {
    int col = pos - m_addr_width * text_sz.x;
    col -= (col / (text_sz.x * (m_group_by * 3 + 1))) * text_sz.x;
    col /= 3 * text_sz.x;
@@ -677,8 +641,7 @@ int HexView::Pos2HexCol(const int pos) const
 }
 
 // returns closet char area column given x display position
-int HexView::Pos2CharCol(const int pos) const
-{
+int HexView::Pos2CharCol(const int pos) const {
    int col = pos - (1 + m_addr_width) * text_sz.x;
    col -= (3 * m_columns + m_columns / m_group_by - 1) * text_sz.x;
    col /= text_sz.x;
@@ -693,18 +656,15 @@ int HexView::Pos2CharCol(const int pos) const
 
 #ifdef HT_DEBUG_PANEL_ENABLED
 
-void HexView::AddToDebugPanel(DebugPanel *panel)
-{
-   if (!panel)
-   {
+void HexView::AddToDebugPanel(DebugPanel *panel) {
+   if (!panel) {
       return;
    }
 
    m_debugWatches.clear();
    const wxString tag = wxString::Format("[%s] ", wxFileNameFromPath(GetDocument()->GetFilename()));
 
-   auto watch = [&](const char *name, const auto *var)
-   {
+   auto watch = [&](const char *name, const auto *var) {
       m_debugWatches.push_back(panel->AddWatchRef(tag + name, var));
    };
 
@@ -716,32 +676,8 @@ void HexView::AddToDebugPanel(DebugPanel *panel)
    watch("m_base", &m_base);
    watch("m_scrollpos", &m_scrollpos);
 
-   m_debugWatches.push_back(panel->AddWatch(tag + "offset", [this]
-                                            { return wxString::Format("%lld", static_cast<long long>(GetCurrentOffset())); }));
+   m_debugWatches.push_back(panel->AddWatch(
+      tag + "offset", [this] { return wxString::Format("%lld", static_cast<long long>(GetCurrentOffset())); }));
 }
 
 #endif
-
-/* #ifndef NDEBUG
-void HexView::AddToDebugPanel (DebugPanel *dbgPanel)
-{
-   dbgPanel->AddProperty("[View] m_numlines", DebugPanel::Type_Long, &m_numlines);
-   dbgPanel->AddProperty("[View] m_numshown", DebugPanel::Type_Long, &m_numshown);
-   dbgPanel->AddProperty("[View] m_start_line", DebugPanel::Type_Long, &m_start_line);
-   dbgPanel->AddProperty("[View] m_end_line", DebugPanel::Type_Long, &m_end_line);
-   dbgPanel->AddProperty("[View] m_caretpos", DebugPanel::Type_wxPoint, &m_caretpos);
-   dbgPanel->AddProperty("[View] m_base", DebugPanel::Type_wxRect, &m_base);
-   dbgPanel->AddProperty("[View] m_scrollpos", DebugPanel::Type_wxPoint, &m_scrollpos);
-}
-
-void HexView::RemoveFromDebugPanel (DebugPanel *dbgPanel)
-{
-   dbgPanel->RemoveProperty("[View] m_numlines");
-   dbgPanel->RemoveProperty("[View] m_numshown");
-   dbgPanel->RemoveProperty("[View] m_start_line");
-   dbgPanel->RemoveProperty("[View] m_end_line");
-   dbgPanel->RemoveProperty("[View] m_caretpos");
-   dbgPanel->RemoveProperty("[View] m_base");
-   dbgPanel->RemoveProperty("[View] m_scrollpos");
-}
-#endif */
