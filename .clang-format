@@ -1,0 +1,103 @@
+---
+BasedOnStyle: LLVM
+Language: Cpp
+Standard: c++17
+
+# Indentation
+IndentWidth: 3
+TabWidth: 3
+UseTab: Never
+ContinuationIndentWidth: 3
+ConstructorInitializerIndentWidth: 4
+AccessModifierOffset: -3
+IndentCaseLabels: true
+NamespaceIndentation: None
+
+# Line length
+ColumnLimit: 120
+
+# Braces (Open brackets attached, 'else' dropped to new line)
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterCaseLabel: false
+  AfterClass: false
+  AfterControlStatement: Never
+  AfterEnum: false
+  AfterFunction: false
+  AfterNamespace: false
+  AfterObjCDeclaration: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterExternBlock: false
+  BeforeCatch: true
+  BeforeElse: true
+  BeforeLambdaBody: false
+  BeforeWhile: false
+  IndentBraces: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+
+# Line breaks
+BreakBeforeBinaryOperators: None
+BreakConstructorInitializers: BeforeColon
+BreakInheritanceList: BeforeColon
+BreakTemplateDeclarations: Yes
+AlwaysBreakAfterReturnType: None
+
+# Function calls and arguments wrapping
+BinPackArguments: false
+AlignAfterOpenBracket: DontAlign
+
+# Pointers and references
+PointerAlignment: Right
+ReferenceAlignment: Pointer
+DerivePointerAlignment: false
+
+# Spacing
+SpaceBeforeParens: ControlStatements
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCpp11BracedList: true
+SpaceBeforeRangeBasedForLoopColon: true
+SpaceInEmptyBlock: false
+SpacesInAngles: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+SpaceAfterTemplateKeyword: true
+SpacesBeforeTrailingComments: 2
+
+# Short blocks / functions
+AllowShortBlocksOnASingleLine: Empty
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+# Includes
+# wxWidgets requires precompiled headers (<wx/wxprec.h>) to precede others.
+SortIncludes: false
+IncludeBlocks: Preserve
+
+# Comments
+AlignTrailingComments: true
+AlignEscapedNewlines: Right
+
+# wxWidgets macro blocks (indents table entries between BEGIN and END)
+MacroBlockBegin: "^BEGIN_EVENT_TABLE"
+MacroBlockEnd: "^END_EVENT_TABLE"
+
+# wxWidgets statement macros
+StatementMacros:
+  - wxASSERT
+  - wxASSERT_MSG
+  - wxCHECK
+  - wxCHECK_MSG
+  - wxCHECK_RET
+  - DECLARE_DYNAMIC_CLASS
+  - IMPLEMENT_DYNAMIC_CLASS
+  - DECLARE_CLASS
+  - IMPLEMENT_CLASS
+  - DECLARE_ABSTRACT_CLASS
+  - IMPLEMENT_ABSTRACT_CLASS
+  - DECLARE_EVENT_TABLE
+  - IMPLEMENT_APP
