@@ -149,6 +149,8 @@ HexFrame::HexFrame(HexView *vw, wxAuiMDIParentFrame *parent, wxWindowID id, cons
    m_canvas->Bind(wxEVT_SCROLLWIN_THUMBRELEASE, &HexView::OnScroll, m_view);
 
    m_view->SetFrame(this);
+
+   Layout();
 }
 
 HexFrame::~HexFrame() {
