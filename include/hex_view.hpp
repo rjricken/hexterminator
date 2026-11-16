@@ -116,6 +116,11 @@ private:
 
    void DrawVerticalLine(wxDC &dc, const int x, const int y1, const int y2) const { dc.DrawLine(x, y1, x, y2); }
 
+   void DrawCaret(wxDC *dc) const;
+
+   enum class CaretCellStyle { Filled, Outline };
+   void DrawCaretCell(wxDC *dc, int x, int y, int w, const wxString &text, const wxColour &clr, CaretCellStyle style) const;
+
    void MovePos(int key, bool ctrl_down, bool shift_down, bool alt_down);
 
    int Pos2HexCol(const int pos) const;

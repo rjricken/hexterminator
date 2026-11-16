@@ -377,24 +377,8 @@ void HexView::OnDraw(wxDC *dc) {
       }
    }
 
-   // display the selected bytes in reverse video
-   wxPoint caret_pos = m_caretpos;  // m_frame->GetCaretPos();
-
-   dc->SetLogicalFunction(wxINVERT);
-   dc->SetBrush(*wxBLACK_BRUSH);
-
-   if (caret_pos.y >= m_start_line && caret_pos.y <= m_end_line) {
-      caret_pos.y = (caret_pos.y - m_start_line) * text_sz.y + m_base.y;
-
-      if (!m_edit_char) {
-         int cx = CharCol2Pos(caret_pos.x);
-         dc->DrawRectangle(cx, caret_pos.y, text_sz.x, text_sz.y);
-      }
-      else {
-         int hx = HexCol2Pos(caret_pos.x);
-         dc->DrawRectangle(hx, caret_pos.y, 2 * text_sz.x, text_sz.y);
-      }
-   }
+   // display the caret cell in reverse video
+   DrawCaret(dc);
 
 #if 1
    auto end = std::chrono::system_clock::now();
@@ -402,6 +386,53 @@ void HexView::OnDraw(wxDC *dc) {
 
    // wxLogStatus("[HexView] ::OnDraw run time: %I64d ms", elapsed.count());
 #endif
+}
+
+void HexView::DrawCaret(wxDC *dc) const {
+   if (m_caretpos.y < m_start_line || m_caretpos.y > m_end_line)
+      return;
+
+   static const wxColour caret_fill_clr(0, 102, 153);  // dark cyan, matches palette
+
+   const wxFileOffset caretOffset = m_caretpos.y * m_columns + m_caretpos.x;
+   const int cy = (m_caretpos.y - m_start_line) * text_sz.y + m_base.y;
+   const int hx = HexCol2Pos(m_caretpos.x);
+   const int cx = CharCol2Pos(m_caretpos.x);
+
+   const wxString hexText =
+      caretOffset < view_data_sz ? wxString::Format(wxT("%02X"), view_data[caretOffset]) : wxString();
+   const wxString charText =
+      caretOffset < view_data_sz
+         ? wxString::Format(wxT("%c"),
+              (view_data[caretOffset] > 0x1F && view_data[caretOffset] < 0x7F) ? (char)view_data[caretOffset] : '.')
+         : wxString();
+
+   if (!m_edit_char) {
+      DrawCaretCell(dc, hx, cy, 2 * text_sz.x, hexText,  caret_fill_clr, CaretCellStyle::Filled);
+      DrawCaretCell(dc, cx, cy,     text_sz.x,  charText, caret_fill_clr, CaretCellStyle::Outline);
+   }
+   else {
+      DrawCaretCell(dc, cx, cy,     text_sz.x,  charText, caret_fill_clr, CaretCellStyle::Filled);
+      DrawCaretCell(dc, hx, cy, 2 * text_sz.x,  hexText,  caret_fill_clr, CaretCellStyle::Outline);
+   }
+}
+
+void HexView::DrawCaretCell(
+   wxDC *dc, int x, int y, int w, const wxString &text, const wxColour &clr, CaretCellStyle style) const {
+   if (style == CaretCellStyle::Filled) {
+      dc->SetPen(*wxTRANSPARENT_PEN);
+      dc->SetBrush(wxBrush(clr));
+      dc->DrawRectangle(x, y, w, text_sz.y);
+      if (!text.IsEmpty()) {
+         dc->SetTextForeground(*wxWHITE);
+         dc->DrawText(text, x, y);
+      }
+   }
+   else {  // Outline
+      dc->SetBrush(*wxTRANSPARENT_BRUSH);
+      dc->SetPen(wxPen(clr));
+      dc->DrawRectangle(x, y, w, text_sz.y);
+   }
 }
 
 void HexView::DrawBackground(wxDC *dc) const {
