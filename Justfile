@@ -35,6 +35,14 @@ run-release: build-release
 
 # Utils
 
+# formats all C++ sources and headers with clang-format
+format:
+    clang-format -i src/*.cpp include/*.hpp
+
+# checks if all C++ sources and headers adhere to clang-format
+check-format:
+    clang-format --dry-run --Werror src/*.cpp include/*.hpp
+
 # cleans all temporary directories
 clean:
     rm -rf build build-release
