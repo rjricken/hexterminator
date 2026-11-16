@@ -116,8 +116,8 @@ private:
    void SetupDC(wxDC *dc) const;
    void DrawBackground(wxDC *dc) const;
    void DrawSeparators(wxDC *dc) const;
-   void DrawRuler(wxDC *dc) const;
    void DrawCursorHighlight(wxDC *dc) const;
+   void DrawRuler(wxDC *dc) const;
    void DrawMouseHighlight(wxDC *dc) const;
    void DrawLines(wxDC *dc) const;
    void DrawCaret(wxDC *dc) const;

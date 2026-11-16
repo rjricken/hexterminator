@@ -282,8 +282,8 @@ void HexView::OnDraw(wxDC *dc) {
    SetupDC(dc);
    DrawBackground(dc);
    DrawSeparators(dc);
-   DrawRuler(dc);
    DrawCursorHighlight(dc);
+   DrawRuler(dc);
    DrawMouseHighlight(dc);
    DrawLines(dc);
    DrawCaret(dc);
