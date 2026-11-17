@@ -37,6 +37,7 @@ BEGIN_EVENT_TABLE(HtMainFrame, wxAuiMDIParentFrame)
    EVT_MENU(HT_HelpAbout, HtMainFrame::OnHelpAbout)
    EVT_ERASE_BACKGROUND(HtMainFrame::OnEraseBackground)
    EVT_CLOSE(HtMainFrame::OnClose)
+   EVT_SYS_COLOUR_CHANGED(HtMainFrame::OnSysColourChanged)
    EVT_UPDATE_UI(HT_FileSave, HtMainFrame::OnUpdateUI)
    EVT_UPDATE_UI(HT_FileClose, HtMainFrame::OnUpdateUI)
    EVT_UPDATE_UI(HT_EditCut, HtMainFrame::OnUpdateUI)
@@ -123,13 +124,11 @@ HtMainFrame::HtMainFrame(const wxString &title, const wxPoint &pos, const wxSize
    tb_nav->AddControl(new wxComboBox(tb_nav, HT_Tool_SearchBox, wxT(""), wxDefaultPosition, wxSize(200, 20)));
    tb_nav->AddTool(
       HT_EditFindBack, _("Find forward"), art.GetBitmap(HTArtId_NavTb, HTArt_SearchForw), _("Find Forward"));
-   wxComboBox *jump_hex = new wxComboBox(tb_nav, HT_Tool_JumpHex, wxT(""), wxDefaultPosition, wxSize(115, 20));
-   jump_hex->SetForegroundColour(wxColor(128, 0, 0));
-   tb_nav->AddControl(jump_hex, _("Jump hex"));
-   wxComboBox *jump_dec = new wxComboBox(tb_nav, HT_Tool_JumpDec, wxT(""), wxDefaultPosition, wxSize(140, 20));
-   // jump_dec->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false));
-   jump_dec->SetForegroundColour(wxColor(0, 0, 128));
-   tb_nav->AddControl(jump_dec, _("Jump decimal"));
+   m_jumpHex = new wxComboBox(tb_nav, HT_Tool_JumpHex, wxT(""), wxDefaultPosition, wxSize(115, 20));
+   tb_nav->AddControl(m_jumpHex, _("Jump hex"));
+   m_jumpDec = new wxComboBox(tb_nav, HT_Tool_JumpDec, wxT(""), wxDefaultPosition, wxSize(140, 20));
+   tb_nav->AddControl(m_jumpDec, _("Jump decimal"));
+   ApplyNavigationColors();
    tb_nav->Realize();
 
    aui_manager.AddPane(tb_main, wxAuiPaneInfo().ToolbarPane().Top().LeftDockable(false).RightDockable(false));
@@ -157,7 +156,7 @@ HtMainFrame::HtMainFrame(const wxString &title, const wxPoint &pos, const wxSize
    wxAuiMDIParentFrame::GetClientWindow()->Connect(
       wxEVT_COMMAND_AUINOTEBOOK_PAGE_CLOSE, wxAuiNotebookEventHandler(HtMainFrame::OnNotebookPageClose));
 
-   jump_hex->Connect(wxEVT_TEXT_ENTER, wxCommandEventHandler(HtMainFrame::OnJumpHexTextEnter));
+   m_jumpHex->Connect(wxEVT_TEXT_ENTER, wxCommandEventHandler(HtMainFrame::OnJumpHexTextEnter));
    // jump_hex->Connect(wxEVT_TEXT, wxCommandEventHandler(HtMainFrame::OnJumpHexTextEnter));
 
 #ifdef HT_DEBUG_PANEL_ENABLED
@@ -274,14 +273,21 @@ void HtMainFrame::OnUpdateUI(wxUpdateUIEvent &event) {
       case HT_Tool_JumpHex:
       case HT_Tool_JumpDec: {
          HexView *view = GetActiveView();
-         event.Enable(view != 0);
+         event.Enable(view != nullptr);
 
          if (view) {
             wxFileOffset off = view->GetCurrentOffset();
 
-            event.GetId() == HT_Tool_JumpHex ? event.SetText(wxString::Format("%llX", off))
-                                             : event.SetText(wxString::Format("%llu", off));
+            wxComboBox *control = event.GetId() == HT_Tool_JumpHex ? m_jumpHex : m_jumpDec;
+            wxString offset = event.GetId() == HT_Tool_JumpHex
+                                 ? wxString::Format("%llX", static_cast<unsigned long long>(off))
+                                 : wxString::Format("%llu", static_cast<unsigned long long>(off));
+
+            if (control && control->GetValue() != offset) {
+               control->SetValue(offset);
+            }
          }
+
          break;
       }
 
@@ -294,6 +300,22 @@ void HtMainFrame::OnUpdateUI(wxUpdateUIEvent &event) {
          event.Check(aui_manager.GetPane("debug_pane").IsShown());
          break;
 #endif
+   }
+}
+
+void HtMainFrame::OnSysColourChanged(wxSysColourChangedEvent &event) {
+   wxGetApp().RefreshColorsFromSystemTheme();
+   ApplyNavigationColors();
+   event.Skip();
+}
+
+void HtMainFrame::ApplyNavigationColors() {
+   if (m_jumpHex) {
+      m_jumpHex->SetForegroundColour(wxGetApp().GetColorByRole(ColorRole::JumpHexText));
+   }
+
+   if (m_jumpDec) {
+      m_jumpDec->SetForegroundColour(wxGetApp().GetColorByRole(ColorRole::JumpDecimalText));
    }
 }
 

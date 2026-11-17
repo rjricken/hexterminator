@@ -49,6 +49,7 @@ public:
    void OnHelpAbout(wxCommandEvent &event);
    void OnClose(wxCloseEvent &event);
    void OnUpdateUI(wxUpdateUIEvent &event);
+   void OnSysColourChanged(wxSysColourChangedEvent &event);
    void OnNotebookPageClose(wxAuiNotebookEvent &event);
    void OnEditUndoDropDown(wxAuiToolBarEvent &event);
    void OnFileOpenDropDown(wxAuiToolBarEvent &event);
@@ -64,18 +65,26 @@ public:
    void DoOpenFile(const wxString &path);
 
    HexView *GetActiveView() const {
-      wxAuiNotebook *nb = GetNotebook();
+      wxAuiNotebook *notebook = GetNotebook();
 
-      return nb->GetPageCount() ? static_cast<HexFrame *>(nb->GetPage(nb->GetSelection()))->GetView() : 0;
+      if (notebook->GetPageCount() == 0) {
+         return nullptr;
+      }
+
+      auto selectedPage = notebook->GetPage(notebook->GetSelection());
+      return static_cast<HexFrame *>(selectedPage)->GetView();
    }
 
 private:
    void CreateMenu(HtArtProvider &art);
+   void ApplyNavigationColors();
 
    wxAuiManager aui_manager;
    wxStatusBar *statusbar;
    wxLogWindow *logger;
    wxFileHistory history;
+   wxComboBox *m_jumpHex = nullptr;
+   wxComboBox *m_jumpDec = nullptr;
 
 #ifdef HT_DEBUG_PANEL_ENABLED
    DebugPanel *m_debugPanel = nullptr;

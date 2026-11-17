@@ -26,9 +26,19 @@ IMPLEMENT_APP(HtApp);
 
 HtApp::~HtApp() {}
 
+const wxColour &HtApp::GetColorByRole(ColorRole role) const {
+   return m_colors.get(role);
+}
+
+void HtApp::RefreshColorsFromSystemTheme() {
+   m_colors.refreshFromSystemTheme();
+}
+
 bool HtApp::OnInit() {
    if (!wxApp::OnInit())
       return false;
+
+   RefreshColorsFromSystemTheme();
 
    // set up language selection system
    loc.Init(wxLANGUAGE_DEFAULT, wxLOCALE_LOAD_DEFAULT);

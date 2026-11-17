@@ -31,6 +31,7 @@
 
 #include <memory>
 #include <wx/docview.h>
+#include "colors.hpp"
 #include "ht_artprovider.hpp"
 #include "ht_prefs.hpp"
 
@@ -58,12 +59,16 @@ public:
     */
    virtual int OnExit();
 
+   const wxColour &GetColorByRole(ColorRole role) const;
+   void RefreshColorsFromSystemTheme();
+
    std::unique_ptr<wxDocManager> doc_manager; /**< document manager           */
    HtArtProvider art_provider;                /**< app-wide art provider      */
    HtPrefs prefs;                             /**< app-wide preferences       */
 
 private:
    wxLocale loc; /**< defines our current locale */
+   Colors m_colors;
 };
 
 DECLARE_APP(HtApp);
