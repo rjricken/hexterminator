@@ -198,6 +198,7 @@ private:
 
    // metrics
    wxSize text_sz;      /**< average character size (in pixels) */
+   int m_text_y_offset; /**< vertical offset to center characters within row height */
    wxString m_addr_fmt; /**< file address/offset format */
    int m_addr_width;    /**< width of the address column */
 

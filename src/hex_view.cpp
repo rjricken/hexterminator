@@ -56,6 +56,7 @@ HexView::HexView() {
    m_mouse_over = wxPoint(-1, -1);
    m_scrollpos = wxPoint(0, 0);
    m_caretpos = wxPoint(0, 0);
+   m_text_y_offset = 0;
 }
 
 HexView::~HexView() {
@@ -314,8 +315,8 @@ void HexView::DrawRuler(wxDC *dc) const {
    dc->SetPen(wxPen(addrhex_clr));
 
    for (int i = 0; i < m_columns; i++) {
-      dc->DrawText(wxString::Format(wxT("%02X"), i), HexCol2Pos(i), 0);
-      dc->DrawText(wxString::Format(wxT("%02X"), i).substr(1), CharCol2Pos(i), 0);
+      dc->DrawText(wxString::Format(wxT("%02X"), i), HexCol2Pos(i), m_text_y_offset);
+      dc->DrawText(wxString::Format(wxT("%02X"), i).substr(1), CharCol2Pos(i), m_text_y_offset);
    }
 }
 
@@ -327,8 +328,8 @@ void HexView::DrawPositionIndicator(wxDC *dc, int view_row, int col, bool filled
       dc->DrawRectangle(0, m_base.y + view_row * text_sz.y, m_addr_width * text_sz.x - 1, text_sz.y);
 
    if (m_show_ruler) {
-      dc->DrawRectangle(HexCol2Pos(col), 0, 2 * text_sz.x + 1, text_sz.y);
-      dc->DrawRectangle(CharCol2Pos(col), 0, text_sz.x + 1, text_sz.y);
+      dc->DrawRectangle(HexCol2Pos(col), 0, 2 * text_sz.x, text_sz.y);
+      dc->DrawRectangle(CharCol2Pos(col), 0, text_sz.x, text_sz.y);
    }
 }
 
@@ -348,8 +349,11 @@ void HexView::DrawMouseHighlight(wxDC *dc) const {
 
 void HexView::DrawLines(wxDC *dc) const {
    for (int i = m_start_line; i < m_end_line; i++) {
+      const int line_y = m_base.y + (i - m_start_line) * text_sz.y;
+      const int text_y = line_y + m_text_y_offset;
+
       dc->SetTextForeground(addrhex_clr);
-      dc->DrawText(wxString::Format(m_addr_fmt, i * m_columns), 0, m_base.y + (i - m_start_line) * text_sz.y);
+      dc->DrawText(wxString::Format(m_addr_fmt, i * m_columns), 0, text_y);
 
       dc->SetTextForeground(*wxBLACK);
 
@@ -357,13 +361,10 @@ void HexView::DrawLines(wxDC *dc) const {
          if (j >= view_data_sz)
             break;
 
-         dc->DrawText(wxString::Format(wxT("%02X"), view_data[j]),
-            HexCol2Pos(j % m_columns),
-            m_base.y + (i - m_start_line) * text_sz.y);
+         dc->DrawText(wxString::Format(wxT("%02X"), view_data[j]), HexCol2Pos(j % m_columns), text_y);
 
          const char c = (view_data[j] > 0x1F && view_data[j] < 0x7F) ? view_data[j] : '.';
-         dc->DrawText(
-            wxString::Format(wxT("%c"), c), CharCol2Pos(j % m_columns), m_base.y + (i - m_start_line) * text_sz.y);
+         dc->DrawText(wxString::Format(wxT("%c"), c), CharCol2Pos(j % m_columns), text_y);
       }
    }
 }
@@ -405,7 +406,7 @@ void HexView::DrawCaretCell(
       dc->DrawRectangle(x, y, w, text_sz.y);
       if (!text.IsEmpty()) {
          dc->SetTextForeground(*wxWHITE);
-         dc->DrawText(text, x, y);
+         dc->DrawText(text, x, y + m_text_y_offset);
       }
    }
    else {  // Outline
@@ -511,6 +512,8 @@ void HexView::RecalcDisplay() {
       12, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("Courier")));
 
    text_sz = wxSize(dc.GetCharWidth(), dc.GetCharHeight());
+   wxFontMetrics fm = dc.GetFontMetrics();
+   m_text_y_offset = std::max(0, (fm.descent - fm.internalLeading) / 2);
    m_addr_width = wxString::Format(wxT("%lX:"), view_data_sz).size();
    m_addr_fmt = wxString::Format(wxT("%%0%dX:"), m_addr_width - 1);
 
