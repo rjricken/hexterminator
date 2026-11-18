@@ -69,7 +69,6 @@ HexView::~HexView() {
 }
 
 bool HexView::OnCreate(wxDocument *doc, long WXUNUSED(flags)) {
-   wxLogStatus("[HexView] OnCreate called.");
    // HexDoc *hdoc = (HexDoc *)doc;
 
    return true;
@@ -224,7 +223,6 @@ void HexView::OnScroll(wxScrollWinEvent &event) {
          UpdateScrollbars();
       }
       else if (type == wxEVT_SCROLLWIN_BOTTOM) {
-         wxLogStatus(wxT("[HexFrame] Vertical SB: Received EVT_SCROLLWIN_BOTTOM event"));
          m_scrollpos.y = m_numlines;
       }
    }
@@ -233,7 +231,7 @@ void HexView::OnScroll(wxScrollWinEvent &event) {
    UpdateScrollbars();
 
    // m_view->ValidateCaret(m_caretpos);
-   m_frame->GetCanvas()->Refresh(), m_frame->GetCanvas()->Update();
+   m_frame->GetCanvas()->Refresh();
    UpdateCaret();
 }
 
@@ -348,6 +346,8 @@ void HexView::DrawMouseHighlight(wxDC *dc) const {
 }
 
 void HexView::DrawLines(wxDC *dc) const {
+   static const wxChar hexDigits[] = wxT("0123456789ABCDEF");
+
    for (int i = m_start_line; i < m_end_line; i++) {
       const int line_y = m_base.y + (i - m_start_line) * text_sz.y;
       const int text_y = line_y + m_text_y_offset;
@@ -357,14 +357,30 @@ void HexView::DrawLines(wxDC *dc) const {
 
       dc->SetTextForeground(*wxBLACK);
 
+      wxString hexRow;
+      wxString charRow;
       for (int j = i * m_columns; j < (i * m_columns) + m_columns; j++) {
          if (j >= view_data_sz)
             break;
 
-         dc->DrawText(wxString::Format(wxT("%02X"), view_data[j]), HexCol2Pos(j % m_columns), text_y);
+         const unsigned char value = view_data[j];
+         hexRow += hexDigits[value >> 4];
+         hexRow += hexDigits[value & 0x0F];
 
-         const char c = (view_data[j] > 0x1F && view_data[j] < 0x7F) ? view_data[j] : '.';
-         dc->DrawText(wxString::Format(wxT("%c"), c), CharCol2Pos(j % m_columns), text_y);
+         const wxChar c = (value > 0x1F && value < 0x7F) ? value : wxT('.');
+         charRow += c;
+
+         const int col = j % m_columns;
+         if (col + 1 < m_columns) {
+            hexRow += wxT(' ');
+            if ((col + 1) % m_group_by == 0)
+               hexRow += wxT(' ');
+         }
+      }
+
+      if (!hexRow.IsEmpty()) {
+         dc->DrawText(hexRow, HexCol2Pos(0), text_y);
+         dc->DrawText(charRow, CharCol2Pos(0), text_y);
       }
    }
 }
@@ -484,11 +500,9 @@ void HexView::MovePos(int key, bool ctrl_down, bool shift_down, bool alt_down) {
     ou ainda atualizar esses valores ap�s qualquer altera��o que os afete.
     */
    if (m_caretpos.y >= m_end_line - m_additional_line ? 1 : 0) {
-      wxLogStatus("I need to scroll down 1 line");
       m_scrollpos.y += 1;
    }
    else if (m_caretpos.y < m_start_line) {
-      wxLogStatus("I need to scroll up 1 line");
       m_scrollpos.y -= 1;
    }
 
@@ -559,12 +573,6 @@ void HexView::UpdateScrollbars() {
    if (m_scrollpos.y + m_numshown > m_numlines + extra)
       extra += m_numshown - (m_end_line - m_start_line);
 
-   if (m_frame->HasFocus())
-      wxLogStatus("[HexView] UpdateScrollbars: m_numlines(%ld), m_numshown(%ld), extra(%d)",
-         m_numlines + extra,
-         m_numshown,
-         extra);
-
    // show/adjust or hide the vertical scrollbar
    if (m_numlines >= m_numshown)
       m_frame->GetCanvas()->SetScrollbar(
@@ -581,7 +589,7 @@ void HexView::DoMouseWheel(const int lines) {
    ValidateScroll(m_scrollpos);
    UpdateScrollbars();
 
-   m_frame->GetCanvas()->Refresh(), m_frame->GetCanvas()->Update();
+   m_frame->GetCanvas()->Refresh();
    UpdateCaret();
 }
 
