@@ -1,0 +1,14 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "hexterminator",
+  "version": "1.0.0",
+  "dependencies": [
+    {
+      "name": "wxwidgets",
+      "default-features": false,
+      "features": [
+        "debug-support"
+      ]
+    }
+  ]
+}

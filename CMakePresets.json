@@ -2,7 +2,7 @@
     "version": 3,
     "cmakeMinimumRequired": {
         "major": 3,
-        "minor": 19
+        "minor": 21
     },
     "configurePresets": [
         {
@@ -11,6 +11,7 @@
             "description": "Default debug build (fast compilation, symbols)",
             "binaryDir": "${sourceDir}/build",
             "generator": "Unix Makefiles",
+            "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             }
@@ -21,6 +22,7 @@
             "description": "Optimized release build",
             "binaryDir": "${sourceDir}/build-release",
             "generator": "Unix Makefiles",
+            "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
