@@ -445,7 +445,6 @@ void HtMainFrame::OnJumpHexTextEnter(wxCommandEvent &event) {
    auto *cbxPtr = dynamic_cast<wxComboBox *>(event.GetEventObject());
    wxString addressStr = cbxPtr->GetValue();
 
-   wxLogStatus("[HtMainFrame] ::OnJumpHexTextEnter (%s)", addressStr);
 }
 
 /**

@@ -63,14 +63,6 @@ public:
       m_frame->GetCanvas()->GetCaret()->Move(x, y);
       (m_caretpos.y - m_start_line) >= 0 ? m_frame->ShowCaret() : m_frame->HideCaret();
 
-      wxLogStatus("Caret is now %svisible at [%d,%d]/[%d,%d] in the %s area",
-         m_frame->GetCanvas()->GetCaret()->IsVisible() ? "" : "in",
-         m_caretpos.x,
-         m_caretpos.y,
-         m_frame->GetCanvas()->GetCaret()->GetPosition().x,
-         m_frame->GetCanvas()->GetCaret()->GetPosition().y,
-         m_edit_char ? "CHAR" : "HEX");
-
       // if (y + text_sz.y > m_base.GetBottom())
       //    wxLogStatus("I need to scroll down 1 line");
    }
@@ -180,7 +172,6 @@ private:
       // if (scr_pos.y > m_numlines - 1)
       //    scr_pos.y = m_scroll_past_ends ? m_numlines - 1 : m_numlines - m_numshown;
 
-      wxLogStatus("[HexView] ValidateScroll: m_scrollpos   y=%d", m_scrollpos.y);
    }
 
    // -- Attributes

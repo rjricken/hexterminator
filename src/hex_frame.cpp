@@ -132,8 +132,6 @@ END_EVENT_TABLE()
 
 HexFrame::HexFrame(HexView *vw, wxAuiMDIParentFrame *parent, wxWindowID id, const wxString &title)
     : wxAuiMDIChildFrame(parent, id, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE), m_view(vw) {
-   wxLogDebug("[HexFrame] created at 0x%llX.", reinterpret_cast<uint64_t>(this));
-
    m_canvas = new HexCanvas(this, vw);
    wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
    sizer->Add(m_canvas, 1, wxEXPAND);
@@ -153,9 +151,7 @@ HexFrame::HexFrame(HexView *vw, wxAuiMDIParentFrame *parent, wxWindowID id, cons
    Layout();
 }
 
-HexFrame::~HexFrame() {
-   wxLogDebug("[HexFrame] at 0x%llX destroyed.", reinterpret_cast<uint64_t>(this));
-}
+HexFrame::~HexFrame() {}
 
 void HexFrame::OnSize(wxSizeEvent &event) {
    wxLogDebug("<<Flow>> HwxFrame::OnSize");
@@ -187,7 +183,6 @@ void HexFrame::OnMouseWheel(wxMouseEvent &event) {
       int count = event.GetWheelRotation() / event.GetWheelDelta();
       count *= lines;
 
-      wxLogStatus("Mouse Wheel rotation: %d", count);
       m_view->DoMouseWheel(count);
    }
 }
@@ -230,15 +225,11 @@ void HexFrame::OnPaint(wxPaintEvent &WXUNUSED(event)) {
 }
 
 void HexFrame::OnSetFocus(wxFocusEvent &event) {
-   wxLogStatus("[HexFrame] ::OnSetFocus event");
-
    if (m_view)
       m_view->OnSetFocus(event);
 }
 
 void HexFrame::OnKillFocus(wxFocusEvent &event) {
-   wxLogStatus("[HexFrame] ::OnKillFocus event");
-
    if (m_view)
       m_view->OnKillFocus(event);
 }
