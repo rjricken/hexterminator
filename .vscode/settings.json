@@ -1,5 +1,11 @@
 {
    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
    "C_Cpp.formatting": "clangFormat",
-   "editor.formatOnSave": true
+   "editor.formatOnSave": true,
+   "files.watcherExclude": {
+      "**/.git/objects/**": true,
+      "**/.git/subtree-cache/**": true,
+      "**/build/**": true,
+      "**/build-release/**": true
+   }
 }
