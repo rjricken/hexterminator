@@ -10,7 +10,7 @@
             "displayName": "Debug",
             "description": "Default debug build (fast compilation, symbols)",
             "binaryDir": "${sourceDir}/build",
-            "generator": "Unix Makefiles",
+            "generator": "Ninja",
             "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
@@ -21,7 +21,7 @@
             "displayName": "Release",
             "description": "Optimized release build",
             "binaryDir": "${sourceDir}/build-release",
-            "generator": "Unix Makefiles",
+            "generator": "Ninja",
             "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
