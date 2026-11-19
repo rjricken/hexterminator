@@ -50,7 +50,6 @@ public:
    void OnClose(wxCloseEvent &event);
    void OnUpdateUI(wxUpdateUIEvent &event);
    void OnSysColourChanged(wxSysColourChangedEvent &event);
-   void OnNotebookPageClose(wxAuiNotebookEvent &event);
    void OnEditUndoDropDown(wxAuiToolBarEvent &event);
    void OnFileOpenDropDown(wxAuiToolBarEvent &event);
    void OnRecentFilesSelected(wxCommandEvent &event);

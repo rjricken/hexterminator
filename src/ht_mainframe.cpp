@@ -50,7 +50,6 @@ BEGIN_EVENT_TABLE(HtMainFrame, wxAuiMDIParentFrame)
    EVT_MENU(HT_ViewDebugPanel, HtMainFrame::OnViewDebugPanel)
    EVT_UPDATE_UI(HT_ViewDebugPanel, HtMainFrame::OnUpdateUI)
 #endif
-   EVT_AUINOTEBOOK_PAGE_CLOSE(wxID_ANY, HtMainFrame::OnNotebookPageClose)
    EVT_AUITOOLBAR_TOOL_DROPDOWN(HT_EditUndo, HtMainFrame::OnEditUndoDropDown)
    EVT_AUITOOLBAR_TOOL_DROPDOWN(HT_FileOpen, HtMainFrame::OnFileOpenDropDown)
 
@@ -153,9 +152,6 @@ HtMainFrame::HtMainFrame(const wxString &title, const wxPoint &pos, const wxSize
    statusbar->PushStatusText(_("Ready"));
    SetStatusBar(statusbar);
 
-   wxAuiMDIParentFrame::GetClientWindow()->Connect(
-      wxEVT_COMMAND_AUINOTEBOOK_PAGE_CLOSE, wxAuiNotebookEventHandler(HtMainFrame::OnNotebookPageClose));
-
    m_jumpHex->Connect(wxEVT_TEXT_ENTER, wxCommandEventHandler(HtMainFrame::OnJumpHexTextEnter));
    // jump_hex->Connect(wxEVT_TEXT, wxCommandEventHandler(HtMainFrame::OnJumpHexTextEnter));
 
@@ -178,31 +174,6 @@ HtMainFrame::HtMainFrame(const wxString &title, const wxPoint &pos, const wxSize
 #endif
 
    aui_manager.Update();
-
-#ifdef HT_DEBUG_PANEL_ENABLED
-   wxPrintf("m_debugPanel=%p\n", (void *)m_debugPanel);
-   {
-      wxAuiPaneInfo &p = aui_manager.GetPane("debug_pane");
-      wxPrintf("pane ok=%d shown=%d docked=%d rect=(%d,%d %dx%d)\n",
-         (int)p.IsOk(),
-         (int)p.IsShown(),
-         (int)p.IsDocked(),
-         p.rect.x,
-         p.rect.y,
-         p.rect.width,
-         p.rect.height);
-   }
-   if (m_debugPanel)
-      wxPrintf("panel shown=%d size=%dx%d\n",
-         (int)m_debugPanel->IsShown(),
-         m_debugPanel->GetSize().x,
-         m_debugPanel->GetSize().y);
-   fflush(stdout);
-#endif
-
-   // TEMP -----------------
-   // DoOpenFile(wxT("D:/Projects/ricardojricken/trunk/hexterminator/test/1452 - Metroid - Zero Mission (EU)
-   // (M5).gba")); DoOpenFile("test/1452 - Metroid - Zero Mission (EU) (M5).gba");
 }
 
 HtMainFrame::~HtMainFrame() {
@@ -232,17 +203,8 @@ void HtMainFrame::OnFileExit(wxCommandEvent &event) {
    }
 }
 
-void HtMainFrame::OnClose(wxCloseEvent &WXUNUSED(event)) {
-#ifdef HT_DEBUG_PANEL_ENABLED
-   if (m_debugPanel) {
-      m_debugPanel->StopUpdateTimer();
-   }
-#endif
-
-   wxDocManager *docm = wxGetApp().doc_manager.get();
-
-   docm->Clear(true);
-   Destroy();
+void HtMainFrame::OnClose(wxCloseEvent &event) {
+   event.Skip();
 }
 
 void HtMainFrame::OnUpdateUI(wxUpdateUIEvent &event) {
@@ -384,16 +346,6 @@ void HtMainFrame::OnRecentFilesSelected(wxCommandEvent &event) {
    wxString selFile = history.GetHistoryFile(index);
 
    DoOpenFile(selFile);
-}
-
-void HtMainFrame::OnNotebookPageClose(wxAuiNotebookEvent &event) {
-   wxAuiNotebook *nb = static_cast<wxAuiNotebook *>(event.GetEventObject());
-   HexFrame *frame = static_cast<HexFrame *>(nb->GetPage(event.GetSelection()));
-
-   wxDocManager *docm = wxGetApp().doc_manager.get();
-
-   HexView *vw = frame->GetView();
-   docm->CloseDocument(vw->GetDocument());
 }
 
 #ifdef HT_DEBUG_PANEL_ENABLED

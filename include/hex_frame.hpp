@@ -66,6 +66,8 @@ public:
    HexFrame(HexView *view, wxAuiMDIParentFrame *parent, wxWindowID id, const wxString &title);
    virtual ~HexFrame();
 
+   void OnClose(wxCloseEvent &event);
+
    HexView *GetView() const { return m_view; }
    void SetView(HexView *view) { m_view = view; }
 

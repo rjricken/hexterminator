@@ -128,6 +128,7 @@ void HexCanvas::OnKillFocus(wxFocusEvent &event) {
 }
 
 BEGIN_EVENT_TABLE(HexFrame, wxAuiMDIChildFrame)
+   EVT_CLOSE(HexFrame::OnClose)
 END_EVENT_TABLE()
 
 HexFrame::HexFrame(HexView *vw, wxAuiMDIParentFrame *parent, wxWindowID id, const wxString &title)
@@ -152,6 +153,19 @@ HexFrame::HexFrame(HexView *vw, wxAuiMDIParentFrame *parent, wxWindowID id, cons
 }
 
 HexFrame::~HexFrame() {}
+
+void HexFrame::OnClose(wxCloseEvent &event) {
+   if (!m_view) {
+      event.Skip();
+      return;
+   }
+
+   wxDocument *doc = m_view->GetDocument();
+   if (doc && wxGetApp().doc_manager->CloseDocument(doc, false))
+      event.Skip();
+   else
+      event.Veto();
+}
 
 void HexFrame::OnSize(wxSizeEvent &event) {
    wxLogDebug("<<Flow>> HwxFrame::OnSize");

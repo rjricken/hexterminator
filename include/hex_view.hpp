@@ -50,8 +50,6 @@ public:
    ~HexView();
 
    void SetFrame(HexFrame *f) {
-      // wxLogDebug("<<Flow>> HexView::SetFrame");
-
       m_frame = f;
       RecalcDisplay();
    }
@@ -62,9 +60,6 @@ public:
 
       m_frame->GetCanvas()->GetCaret()->Move(x, y);
       (m_caretpos.y - m_start_line) >= 0 ? m_frame->ShowCaret() : m_frame->HideCaret();
-
-      // if (y + text_sz.y > m_base.GetBottom())
-      //    wxLogStatus("I need to scroll down 1 line");
    }
 
    void UpdateScrollbars();
@@ -76,17 +71,21 @@ public:
 
    virtual bool OnCreate(wxDocument *doc, long flags = 0);
    virtual void OnDraw(wxDC *dc);
-   virtual void OnUpdate(wxView *WXUNUSED(sender), wxObject *WXUNUSED(hint) = 0) {
-      // wxLogDebug("<<Flow>> HexView::OnUpdate");
-   }
+
+   virtual void OnUpdate(wxView *WXUNUSED(sender), wxObject *WXUNUSED(hint) = 0) {}
+
    virtual bool OnClose(bool WXUNUSED(deleteWindow) = true) {
-      // m_frame->OnRemoveFromDebugPanel();
+
+#ifdef HT_DEBUG_PANEL_ENABLED
+      m_debugWatches.clear();
+#endif
       if (m_frame) {
          HexFrame *frame = m_frame;
+
          m_frame = nullptr;
          frame->SetView(nullptr);
-         frame->Destroy();
       }
+
       return true;
    }
 
