@@ -80,8 +80,13 @@ public:
       // wxLogDebug("<<Flow>> HexView::OnUpdate");
    }
    virtual bool OnClose(bool WXUNUSED(deleteWindow) = true) {
-      wxLogDebug("[HexView] ::OnClose");
       // m_frame->OnRemoveFromDebugPanel();
+      if (m_frame) {
+         HexFrame *frame = m_frame;
+         m_frame = nullptr;
+         frame->SetView(nullptr);
+         frame->Destroy();
+      }
       return true;
    }
 
@@ -171,7 +176,6 @@ private:
 
       // if (scr_pos.y > m_numlines - 1)
       //    scr_pos.y = m_scroll_past_ends ? m_numlines - 1 : m_numlines - m_numshown;
-
    }
 
    // -- Attributes

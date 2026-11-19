@@ -241,14 +241,6 @@ void HtMainFrame::OnClose(wxCloseEvent &WXUNUSED(event)) {
 
    wxDocManager *docm = wxGetApp().doc_manager.get();
 
-   wxList &docs = docm->GetDocuments();
-
-   // delete all pages currently open in the notebook.
-   // this will automatically destroy the views/doc/frames associated to them.
-   wxAuiNotebook *nb = GetNotebook();
-   while (nb->GetPageCount())
-      nb->DeletePage(0);
-
    docm->Clear(true);
    Destroy();
 }

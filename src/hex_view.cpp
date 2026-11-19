@@ -59,7 +59,6 @@ HexView::~HexView() {
    if (view_data)
       delete[] view_data;
 
-   m_frame->SetView(nullptr);
 }
 
 bool HexView::OnCreate(wxDocument *doc, long WXUNUSED(flags)) {
