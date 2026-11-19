@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+env:
+  VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg_bincache
+
+jobs:
+  build-linux:
+    name: Build (Linux)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Vcpkg Binary Cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-
+
+      - name: Set VCPKG_ROOT
+        run: echo "VCPKG_ROOT=$VCPKG_INSTALLATION_ROOT" >> $GITHUB_ENV
+
+      - name: Install Host Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential curl zip unzip tar autoconf autoconf-archive automake libtool libltdl-dev pkg-config bison flex ninja-build libx11-dev libxft-dev libxext-dev libxi-dev libxtst-dev libxcursor-dev libxdamage-dev libxcomposite-dev libxrandr-dev libxrender-dev libxfixes-dev libxkbcommon-dev libgl1-mesa-dev
+
+      - name: Create vcpkg cache directory
+        run: mkdir -p ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+
+      - name: Configure CMake
+        run: cmake --preset release
+
+      - name: Build
+        run: cmake --build --preset release
+
+  build-windows:
+    name: Build (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Vcpkg Binary Cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-
+
+      - name: Set VCPKG_ROOT
+        shell: pwsh
+        run: Add-Content -Path $env:GITHUB_ENV -Value "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT"
+
+      - name: Setup MSVC Environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Create vcpkg cache directory
+        shell: pwsh
+        run: New-Item -ItemType Directory -Force -Path $env:VCPKG_DEFAULT_BINARY_CACHE
+
+      - name: Configure CMake
+        run: cmake --preset release
+
+      - name: Build
+        run: cmake --build --preset release
