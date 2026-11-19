@@ -1,0 +1,86 @@
+name: Windows Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+env:
+  VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg_bincache
+
+jobs:
+  release-windows:
+    name: Build & Package Windows x64
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Vcpkg Binary Cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-
+
+      - name: Set VCPKG_ROOT
+        shell: pwsh
+        run: Add-Content -Path $env:GITHUB_ENV -Value "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT"
+
+      - name: Setup MSVC Environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Create vcpkg cache directory
+        shell: pwsh
+        run: New-Item -ItemType Directory -Force -Path $env:VCPKG_DEFAULT_BINARY_CACHE
+
+      - name: Configure CMake
+        run: cmake --preset release
+
+      - name: Build
+        run: cmake --build --preset release
+
+      - name: Stage release files
+        run: cmake --install build-release --prefix staging --component HexterminatorRelease
+
+      - name: Package
+        shell: pwsh
+        run: |
+          $tagName = "${{ github.ref_name }}"
+          if ($tagName -notmatch "^v") { $tagName = "dev" }
+
+          $distName = "hexterminator-$tagName-windows-x86_64"
+          New-Item -ItemType Directory -Force -Path $distName
+          Copy-Item -Path "staging\*" -Destination $distName -Recurse -Force
+          Copy-Item -Path "build-release\*.dll" -Destination $distName -Force
+          Compress-Archive -Path "$distName\*" -DestinationPath "$distName.zip" -Force
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Windows-Portable-Build
+          path: hexterminator-*-windows-x86_64.zip
+
+  publish:
+    name: Publish to GitHub Releases
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: release-windows
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Windows-Portable-Build
+          path: release-assets
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/*
+          generate_release_notes: true

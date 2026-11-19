@@ -39,3 +39,22 @@ add_custom_command(
    COMMENT "Copying assets to build directory..."
 )
 
+if(WIN32)
+   target_sources(hexterminator PRIVATE ${CMAKE_SOURCE_DIR}/assets/hterminator_res.rc)
+
+   install(TARGETS hexterminator RUNTIME DESTINATION . COMPONENT HexterminatorRelease)
+   install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets/ DESTINATION . COMPONENT HexterminatorRelease)
+
+   set(CMAKE_INSTALL_UCRT_LIBRARIES FALSE)
+   include(InstallRequiredSystemLibraries)
+
+   set(MSVC_RUNTIME_DLLS "")
+   foreach(lib IN LISTS CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS)
+      if(lib MATCHES "vcruntime140\\.dll$" OR lib MATCHES "vcruntime140_1\\.dll$" OR lib MATCHES "msvcp140\\.dll$")
+         list(APPEND MSVC_RUNTIME_DLLS "${lib}")
+      endif()
+   endforeach()
+
+   install(PROGRAMS ${MSVC_RUNTIME_DLLS} DESTINATION . COMPONENT HexterminatorRelease)
+endif()
+
