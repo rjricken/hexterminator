@@ -15,7 +15,19 @@
 #include <cstddef>
 #include <wx/colour.h>
 
-enum class ColorRole { JumpHexText, JumpDecimalText, Count };
+enum class ColorRole {
+   JumpHexText,
+   JumpDecimalText,
+   ViewBackground,
+   ViewText,
+   RulerBackground,
+   RulerText,
+   HighlightBackground,
+   EditPosition,
+   Separator,
+   EditText,
+   Count
+};
 
 class Colors {
 public:

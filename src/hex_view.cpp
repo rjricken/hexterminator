@@ -33,12 +33,6 @@ HexView::HexView() {
    view_data = 0;
    view_data_sz = 0;
 
-   // -- Colors setup
-   line_clr.Set(0, 105, 153);      // dark cyan
-   addrhex_clr.Set(128, 0, 0);     // dark red
-   addrbg_clr.Set(192, 224, 240);  // cyan
-   addrhl_clr.Set(255, 160, 128);  // beige
-
    HtPrefs &prefs = wxGetApp().prefs;
 
    m_columns = prefs.getInt(wxT("document/visualization/columns"));
@@ -295,7 +289,7 @@ void HexView::SetupDC(wxDC *dc) const {
 }
 
 void HexView::DrawSeparators(wxDC *dc) const {
-   dc->SetPen(wxPen(line_clr));
+   dc->SetPen(wxPen(wxGetApp().GetColorByRole(ColorRole::Separator)));
    DrawVerticalLine(*dc, m_addr_width * text_sz.x, m_base.y - 3, m_base.GetBottom());
    DrawVerticalLine(*dc, CharCol2Pos(0) - text_sz.x / 2, m_base.y - 3, m_base.GetBottom());
    DrawVerticalLine(*dc, CharCol2Pos(m_columns) + text_sz.x / 2, m_base.y - 3, m_base.GetBottom());
@@ -306,11 +300,12 @@ void HexView::DrawRuler(wxDC *dc) const {
       return;
 
    wxSize client_sz(m_frame->GetCanvas()->GetClientSize());
-   dc->SetPen(wxPen(line_clr));
+   dc->SetPen(wxPen(wxGetApp().GetColorByRole(ColorRole::Separator)));
    dc->DrawLine(m_addr_width * text_sz.x, m_base.y - 3, client_sz.x, m_base.y - 3);
 
-   dc->SetTextForeground(addrhex_clr);
-   dc->SetPen(wxPen(addrhex_clr));
+   const wxColour &rulerText = wxGetApp().GetColorByRole(ColorRole::RulerText);
+   dc->SetTextForeground(rulerText);
+   dc->SetPen(wxPen(rulerText));
 
    for (int i = 0; i < m_columns; i++) {
       dc->DrawText(wxString::Format(wxT("%02X"), i), HexCol2Pos(i), m_text_y_offset);
@@ -319,8 +314,8 @@ void HexView::DrawRuler(wxDC *dc) const {
 }
 
 void HexView::DrawPositionIndicator(wxDC *dc, int view_row, int col, bool filled) const {
-   dc->SetPen(wxPen(addrhex_clr));
-   dc->SetBrush(filled ? wxBrush(addrhl_clr) : *wxTRANSPARENT_BRUSH);
+   dc->SetPen(wxPen(wxGetApp().GetColorByRole(ColorRole::RulerText)));
+   dc->SetBrush(filled ? wxBrush(wxGetApp().GetColorByRole(ColorRole::HighlightBackground)) : *wxTRANSPARENT_BRUSH);
 
    if (view_row >= 0 && (view_row + m_start_line) < m_numlines)
       dc->DrawRectangle(0, m_base.y + view_row * text_sz.y, m_addr_width * text_sz.x - 1, text_sz.y);
@@ -352,10 +347,10 @@ void HexView::DrawLines(wxDC *dc) const {
       const int line_y = m_base.y + (i - m_start_line) * text_sz.y;
       const int text_y = line_y + m_text_y_offset;
 
-      dc->SetTextForeground(addrhex_clr);
+      dc->SetTextForeground(wxGetApp().GetColorByRole(ColorRole::RulerText));
       dc->DrawText(wxString::Format(m_addr_fmt, i * m_columns), 0, text_y);
 
-      dc->SetTextForeground(*wxBLACK);
+      dc->SetTextForeground(wxGetApp().GetColorByRole(ColorRole::ViewText));
 
       wxString hexRow;
       wxString charRow;
@@ -389,7 +384,7 @@ void HexView::DrawCaret(wxDC *dc) const {
    if (m_caretpos.y < m_start_line || m_caretpos.y > m_end_line)
       return;
 
-   static const wxColour caret_fill_clr(0, 102, 153);  // dark cyan, matches palette
+   const wxColour &caret_fill_clr = wxGetApp().GetColorByRole(ColorRole::EditPosition);
 
    const wxFileOffset caretOffset = m_caretpos.y * m_columns + m_caretpos.x;
    const int cy = (m_caretpos.y - m_start_line) * text_sz.y + m_base.y;
@@ -421,7 +416,7 @@ void HexView::DrawCaretCell(
       dc->SetBrush(wxBrush(clr));
       dc->DrawRectangle(x, y, w, text_sz.y);
       if (!text.IsEmpty()) {
-         dc->SetTextForeground(*wxWHITE);
+         dc->SetTextForeground(wxGetApp().GetColorByRole(ColorRole::EditText));
          dc->DrawText(text, x, y + m_text_y_offset);
       }
    }
@@ -434,13 +429,13 @@ void HexView::DrawCaretCell(
 
 void HexView::DrawBackground(wxDC *dc) const {
    // fill the background
-   dc->SetBackground(*wxWHITE_BRUSH);
+   dc->SetBackground(wxBrush(wxGetApp().GetColorByRole(ColorRole::ViewBackground)));
    dc->Clear();
 
    int offw = m_addr_width * text_sz.x;
    wxRect client = m_frame->GetClientRect();
 
-   dc->SetBrush(wxBrush(addrbg_clr));
+   dc->SetBrush(wxBrush(wxGetApp().GetColorByRole(ColorRole::RulerBackground)));
    dc->SetPen(*wxTRANSPARENT_PEN);
 
    // offsets column

@@ -306,6 +306,13 @@ void HtMainFrame::OnUpdateUI(wxUpdateUIEvent &event) {
 void HtMainFrame::OnSysColourChanged(wxSysColourChangedEvent &event) {
    wxGetApp().RefreshColorsFromSystemTheme();
    ApplyNavigationColors();
+
+   wxAuiNotebook *notebook = GetNotebook();
+   for (size_t i = 0; i < notebook->GetPageCount(); ++i) {
+      auto *frame = static_cast<HexFrame *>(notebook->GetPage(i));
+      frame->GetCanvas()->Refresh();
+   }
+
    event.Skip();
 }
 
@@ -444,7 +451,6 @@ void HtMainFrame::OnKeyDown(wxKeyEvent &event) {
 void HtMainFrame::OnJumpHexTextEnter(wxCommandEvent &event) {
    auto *cbxPtr = dynamic_cast<wxComboBox *>(event.GetEventObject());
    wxString addressStr = cbxPtr->GetValue();
-
 }
 
 /**

@@ -181,12 +181,6 @@ private:
    unsigned char *view_data;
    long view_data_sz;
 
-   // color scheme
-   wxColor line_clr;    /**< line color */
-   wxColor addrhex_clr; /**< addresses text color */
-   wxColor addrbg_clr;  /**< addresses background color */
-   wxColor addrhl_clr;  /**< addresses highlight color */
-
    // metrics
    wxSize text_sz;      /**< average character size (in pixels) */
    int m_text_y_offset; /**< vertical offset to center characters within row height */
