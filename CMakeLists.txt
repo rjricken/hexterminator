@@ -16,7 +16,7 @@ find_package(wxWidgets REQUIRED COMPONENTS core base aui adv)
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 file(GLOB_RECURSE HEADERS "src/*.hpp")
 
-add_executable(hexterminator ${SOURCES} ${HEADERS})
+add_executable(hexterminator WIN32 ${SOURCES} ${HEADERS})
 
 target_include_directories(
    hexterminator
