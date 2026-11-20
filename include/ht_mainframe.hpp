@@ -59,24 +59,19 @@ public:
 #endif
 
    void OnKeyDown(wxKeyEvent &event);
-   void OnJumpHexTextEnter(wxCommandEvent &event);
+   void OnJumpOffsetTextEnter(wxCommandEvent &event);
 
    void DoOpenFile(const wxString &path);
 
    HexView *GetActiveView() const {
-      wxAuiNotebook *notebook = GetNotebook();
-
-      if (notebook->GetPageCount() == 0) {
-         return nullptr;
-      }
-
-      auto selectedPage = notebook->GetPage(notebook->GetSelection());
-      return static_cast<HexFrame *>(selectedPage)->GetView();
+      auto *frame = static_cast<HexFrame *>(GetActiveChild());
+      return frame ? frame->GetView() : nullptr;
    }
 
 private:
    void CreateMenu(HtArtProvider &art);
    void ApplyNavigationColors();
+   void UpdateJumpControls(bool updateWhenFocused = false);
 
    wxAuiManager aui_manager;
    wxStatusBar *statusbar;

@@ -29,6 +29,46 @@
 #include <wx/spinctrl.h>
 #include <wx/combo.h>
 
+#include <charconv>
+#include <limits>
+
+namespace {
+
+bool ParseOffset(wxString value, int base, wxFileOffset &offset) {
+   value.Trim(true).Trim(false);
+
+   bool negative = value.StartsWith("-");
+   if (negative)
+      value = value.Mid(1);
+
+   if (base == 16 && (value.StartsWith("0x") || value.StartsWith("0X")))
+      value = value.Mid(2);
+
+   const std::string input = value.ToStdString();
+   if (input.empty())
+      return false;
+
+   unsigned long long parsed = 0;
+   const auto [end, error] = std::from_chars(input.data(), input.data() + input.size(), parsed, base);
+   if (end != input.data() + input.size() || error == std::errc::invalid_argument)
+      return false;
+
+   if (negative) {
+      offset = 0;
+   }
+   else if (error == std::errc::result_out_of_range ||
+            parsed > static_cast<unsigned long long>(std::numeric_limits<wxFileOffset>::max())) {
+      offset = std::numeric_limits<wxFileOffset>::max();
+   }
+   else {
+      offset = static_cast<wxFileOffset>(parsed);
+   }
+
+   return true;
+}
+
+}  // namespace
+
 BEGIN_EVENT_TABLE(HtMainFrame, wxAuiMDIParentFrame)
    EVT_MENU(HT_FileExit, HtMainFrame::OnFileExit)
    EVT_MENU(HT_FileOpen, HtMainFrame::OnFileOpen)
@@ -123,9 +163,11 @@ HtMainFrame::HtMainFrame(const wxString &title, const wxPoint &pos, const wxSize
    tb_nav->AddControl(new wxComboBox(tb_nav, HT_Tool_SearchBox, wxT(""), wxDefaultPosition, wxSize(200, 20)));
    tb_nav->AddTool(
       HT_EditFindBack, _("Find forward"), art.GetBitmap(HTArtId_NavTb, HTArt_SearchForw), _("Find Forward"));
-   m_jumpHex = new wxComboBox(tb_nav, HT_Tool_JumpHex, wxT(""), wxDefaultPosition, wxSize(115, 20));
+   m_jumpHex = new wxComboBox(
+      tb_nav, HT_Tool_JumpHex, wxT(""), wxDefaultPosition, wxSize(115, 20), 0, nullptr, wxTE_PROCESS_ENTER);
    tb_nav->AddControl(m_jumpHex, _("Jump hex"));
-   m_jumpDec = new wxComboBox(tb_nav, HT_Tool_JumpDec, wxT(""), wxDefaultPosition, wxSize(140, 20));
+   m_jumpDec = new wxComboBox(
+      tb_nav, HT_Tool_JumpDec, wxT(""), wxDefaultPosition, wxSize(140, 20), 0, nullptr, wxTE_PROCESS_ENTER);
    tb_nav->AddControl(m_jumpDec, _("Jump decimal"));
    ApplyNavigationColors();
    tb_nav->Realize();
@@ -152,8 +194,8 @@ HtMainFrame::HtMainFrame(const wxString &title, const wxPoint &pos, const wxSize
    statusbar->PushStatusText(_("Ready"));
    SetStatusBar(statusbar);
 
-   m_jumpHex->Connect(wxEVT_TEXT_ENTER, wxCommandEventHandler(HtMainFrame::OnJumpHexTextEnter));
-   // jump_hex->Connect(wxEVT_TEXT, wxCommandEventHandler(HtMainFrame::OnJumpHexTextEnter));
+   m_jumpHex->Bind(wxEVT_TEXT_ENTER, &HtMainFrame::OnJumpOffsetTextEnter, this);
+   m_jumpDec->Bind(wxEVT_TEXT_ENTER, &HtMainFrame::OnJumpOffsetTextEnter, this);
 
 #ifdef HT_DEBUG_PANEL_ENABLED
    m_debugPanel = new DebugPanel(this, HT_DebugPanel);
@@ -233,13 +275,8 @@ void HtMainFrame::OnUpdateUI(wxUpdateUIEvent &event) {
             wxFileOffset off = view->GetCurrentOffset();
 
             wxComboBox *control = event.GetId() == HT_Tool_JumpHex ? m_jumpHex : m_jumpDec;
-            wxString offset = event.GetId() == HT_Tool_JumpHex
-                                 ? wxString::Format("%llX", static_cast<unsigned long long>(off))
-                                 : wxString::Format("%llu", static_cast<unsigned long long>(off));
-
-            if (control && control->GetValue() != offset) {
-               control->SetValue(offset);
-            }
+            if (control && !control->HasFocus())
+               UpdateJumpControls();
          }
 
          break;
@@ -392,9 +429,38 @@ void HtMainFrame::OnKeyDown(wxKeyEvent &event) {
    event.Skip();
 }
 
-void HtMainFrame::OnJumpHexTextEnter(wxCommandEvent &event) {
+void HtMainFrame::OnJumpOffsetTextEnter(wxCommandEvent &event) {
    auto *cbxPtr = dynamic_cast<wxComboBox *>(event.GetEventObject());
-   wxString addressStr = cbxPtr->GetValue();
+   HexView *view = GetActiveView();
+   if (!cbxPtr || !view)
+      return;
+
+   const int base = cbxPtr->GetId() == HT_Tool_JumpHex ? 16 : 10;
+   wxFileOffset offset = 0;
+   if (!ParseOffset(cbxPtr->GetValue(), base, offset)) {
+      statusbar->SetStatusText(_("Enter a valid offset."));
+      return;
+   }
+
+   view->JumpToOffset(offset);
+   UpdateJumpControls(true);
+   view->GetFrame()->GetCanvas()->SetFocus();
+}
+
+void HtMainFrame::UpdateJumpControls(bool updateWhenFocused) {
+   HexView *view = GetActiveView();
+   if (!view)
+      return;
+
+   const wxFileOffset offset = view->GetCurrentOffset();
+
+   if (m_jumpHex && (updateWhenFocused || !m_jumpHex->HasFocus())) {
+      m_jumpHex->SetValue(wxString::Format("%llX", static_cast<unsigned long long>(offset)));
+   }
+
+   if (m_jumpDec && (updateWhenFocused || !m_jumpDec->HasFocus())) {
+      m_jumpDec->SetValue(wxString::Format("%llu", static_cast<unsigned long long>(offset)));
+   }
 }
 
 /**

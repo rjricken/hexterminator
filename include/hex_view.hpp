@@ -65,6 +65,7 @@ public:
    void UpdateScrollbars();
 
    wxFileOffset GetCurrentOffset() const { return m_caretpos.y * m_columns + m_caretpos.x; }
+   void JumpToOffset(wxFileOffset offset);
 
    HexFrame *GetFrame() const { return m_frame; }
    HexDoc *GetDocument() const { return static_cast<HexDoc *>(wxView::GetDocument()); }

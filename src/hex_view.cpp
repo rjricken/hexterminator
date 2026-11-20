@@ -58,7 +58,6 @@ HexView::~HexView() {
 
    if (view_data)
       delete[] view_data;
-
 }
 
 bool HexView::OnCreate(wxDocument *doc, long WXUNUSED(flags)) {
@@ -194,6 +193,26 @@ void HexView::OnKeyDown(wxKeyEvent &event) {
       default:
          event.Skip();
    }
+}
+
+void HexView::JumpToOffset(wxFileOffset offset) {
+   const wxFileOffset documentLength = GetDocument()->length();
+   offset = std::clamp(offset, wxFileOffset {0}, documentLength);
+
+   m_caretpos = wxPoint(static_cast<int>(offset % m_columns), static_cast<int>(offset / m_columns));
+
+   RecalcViewState();
+   if (m_caretpos.y < m_start_line || m_caretpos.y > m_end_line) {
+      m_scrollpos.y = m_caretpos.y - m_numshown / 2;
+   }
+
+   ValidateScroll(m_scrollpos);
+   RecalcViewState();
+   UpdateScrollbars();
+
+   m_frame->GetCanvas()->Refresh();
+   m_frame->GetCanvas()->Update();
+   UpdateCaret();
 }
 
 void HexView::OnScroll(wxScrollWinEvent &event) {
