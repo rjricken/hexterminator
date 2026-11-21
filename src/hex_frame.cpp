@@ -32,7 +32,7 @@ BEGIN_EVENT_TABLE(HexCanvas, wxScrolledWindow)
    EVT_CHAR_HOOK(HexCanvas::OnKeyDown)
    EVT_SIZE(HexCanvas::OnSize)
    EVT_MOUSEWHEEL(HexCanvas::OnMouseWheel)
-   // EVT_SCROLLWIN(HexCanvas::OnScroll)
+   EVT_SCROLLWIN(HexCanvas::OnScroll)
    EVT_SET_FOCUS(HexCanvas::OnSetFocus)
    EVT_KILL_FOCUS(HexCanvas::OnKillFocus)
 END_EVENT_TABLE()
@@ -115,6 +115,12 @@ void HexCanvas::OnKeyDown(wxKeyEvent &event) {
    }
 }
 
+void HexCanvas::OnScroll(wxScrollWinEvent &event) {
+   if (m_view) {
+      m_view->OnScroll(event);
+   }
+}
+
 void HexCanvas::OnSetFocus(wxFocusEvent &event) {
    if (m_view) {
       m_view->OnSetFocus(event);
@@ -138,21 +144,17 @@ HexFrame::HexFrame(HexView *vw, wxAuiMDIParentFrame *parent, wxWindowID id, cons
    sizer->Add(m_canvas, 1, wxEXPAND);
    SetSizer(sizer);
 
-   m_canvas->Bind(wxEVT_SCROLLWIN_TOP, &HexView::OnScroll, m_view);
-   m_canvas->Bind(wxEVT_SCROLLWIN_BOTTOM, &HexView::OnScroll, m_view);
-   m_canvas->Bind(wxEVT_SCROLLWIN_LINEUP, &HexView::OnScroll, m_view);
-   m_canvas->Bind(wxEVT_SCROLLWIN_LINEDOWN, &HexView::OnScroll, m_view);
-   m_canvas->Bind(wxEVT_SCROLLWIN_PAGEUP, &HexView::OnScroll, m_view);
-   m_canvas->Bind(wxEVT_SCROLLWIN_PAGEDOWN, &HexView::OnScroll, m_view);
-   m_canvas->Bind(wxEVT_SCROLLWIN_THUMBTRACK, &HexView::OnScroll, m_view);
-   m_canvas->Bind(wxEVT_SCROLLWIN_THUMBRELEASE, &HexView::OnScroll, m_view);
-
    m_view->SetFrame(this);
 
    Layout();
 }
 
 HexFrame::~HexFrame() {}
+
+void HexFrame::DetachView() {
+   m_view = nullptr;
+   m_canvas->DetachView();
+}
 
 void HexFrame::OnClose(wxCloseEvent &event) {
    if (!m_view) {

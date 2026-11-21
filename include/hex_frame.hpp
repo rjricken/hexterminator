@@ -41,6 +41,8 @@ public:
    HexCanvas(wxWindow *parent, HexView *view);
    virtual ~HexCanvas();
 
+   void DetachView() { m_view = nullptr; }
+
    void OnPaint(wxPaintEvent &event);
    void OnEraseBackground(wxEraseEvent &event);
    void OnSize(wxSizeEvent &event);
@@ -69,7 +71,7 @@ public:
    void OnClose(wxCloseEvent &event);
 
    HexView *GetView() const { return m_view; }
-   void SetView(HexView *view) { m_view = view; }
+   void DetachView();
 
    HexCanvas *GetCanvas() const { return m_canvas; }
 

@@ -76,10 +76,8 @@ public:
       m_debugWatches.clear();
 #endif
       if (m_frame) {
-         HexFrame *frame = m_frame;
-
+         m_frame->DetachView();
          m_frame = nullptr;
-         frame->SetView(nullptr);
       }
 
       return true;
