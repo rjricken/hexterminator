@@ -24,50 +24,11 @@
 #include "bookmarks_panel.hpp"
 #include "debug_panel.hpp"
 #include "filesystem_utils.hpp"
+#include "offset_parser.hpp"
 
 #include <wx/artprov.h>
 #include <wx/spinctrl.h>
 #include <wx/combo.h>
-
-#include <charconv>
-#include <limits>
-
-namespace {
-
-bool ParseOffset(wxString value, int base, wxFileOffset &offset) {
-   value.Trim(true).Trim(false);
-
-   bool negative = value.StartsWith("-");
-   if (negative)
-      value = value.Mid(1);
-
-   if (base == 16 && (value.StartsWith("0x") || value.StartsWith("0X")))
-      value = value.Mid(2);
-
-   const std::string input = value.ToStdString();
-   if (input.empty())
-      return false;
-
-   unsigned long long parsed = 0;
-   const auto [end, error] = std::from_chars(input.data(), input.data() + input.size(), parsed, base);
-   if (end != input.data() + input.size() || error == std::errc::invalid_argument)
-      return false;
-
-   if (negative) {
-      offset = 0;
-   }
-   else if (error == std::errc::result_out_of_range ||
-            parsed > static_cast<unsigned long long>(std::numeric_limits<wxFileOffset>::max())) {
-      offset = std::numeric_limits<wxFileOffset>::max();
-   }
-   else {
-      offset = static_cast<wxFileOffset>(parsed);
-   }
-
-   return true;
-}
-
-}  // namespace
 
 BEGIN_EVENT_TABLE(HtMainFrame, wxAuiMDIParentFrame)
    EVT_MENU(HT_FileExit, HtMainFrame::OnFileExit)
@@ -272,11 +233,9 @@ void HtMainFrame::OnUpdateUI(wxUpdateUIEvent &event) {
          event.Enable(view != nullptr);
 
          if (view) {
-            wxFileOffset off = view->GetCurrentOffset();
-
             wxComboBox *control = event.GetId() == HT_Tool_JumpHex ? m_jumpHex : m_jumpDec;
             if (control && !control->HasFocus())
-               UpdateJumpControls();
+               UpdateJumpControls(view->GetCurrentOffset());
          }
 
          break;
@@ -435,25 +394,27 @@ void HtMainFrame::OnJumpOffsetTextEnter(wxCommandEvent &event) {
    if (!cbxPtr || !view)
       return;
 
-   const int base = cbxPtr->GetId() == HT_Tool_JumpHex ? 16 : 10;
-   wxFileOffset offset = 0;
-   if (!ParseOffset(cbxPtr->GetValue(), base, offset)) {
+   const auto base =
+      cbxPtr->GetId() == HT_Tool_JumpHex ? ht::util::OffsetBase::Hexadecimal : ht::util::OffsetBase::Decimal;
+   const wxString text = cbxPtr->GetValue().Strip(wxString::both);
+   const auto requestedOffset = ht::util::ParseOffset(text.ToStdString(), base);
+
+   if (!requestedOffset) {
       statusbar->SetStatusText(_("Enter a valid offset."));
       return;
    }
 
-   view->JumpToOffset(offset);
-   UpdateJumpControls(true);
+   const auto caretOffset = view->JumpToOffset(*requestedOffset);
+   if (!caretOffset) {
+      statusbar->SetStatusText(_("Could not jump to the offset because the file size is unavailable."));
+      return;
+   }
+
+   UpdateJumpControls(*caretOffset, true);
    view->GetFrame()->GetCanvas()->SetFocus();
 }
 
-void HtMainFrame::UpdateJumpControls(bool updateWhenFocused) {
-   HexView *view = GetActiveView();
-   if (!view)
-      return;
-
-   const wxFileOffset offset = view->GetCurrentOffset();
-
+void HtMainFrame::UpdateJumpControls(ht::core::ByteOffset offset, bool updateWhenFocused) {
    if (m_jumpHex && (updateWhenFocused || !m_jumpHex->HasFocus())) {
       m_jumpHex->SetValue(wxString::Format("%llX", static_cast<unsigned long long>(offset)));
    }

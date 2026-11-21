@@ -71,7 +71,7 @@ public:
 private:
    void CreateMenu(HtArtProvider &art);
    void ApplyNavigationColors();
-   void UpdateJumpControls(bool updateWhenFocused = false);
+   void UpdateJumpControls(ht::core::ByteOffset offset, bool updateWhenFocused = false);
 
    wxAuiManager aui_manager;
    wxStatusBar *statusbar;

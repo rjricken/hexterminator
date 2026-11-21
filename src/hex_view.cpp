@@ -22,6 +22,9 @@
 #include <algorithm>
 #include <cmath>
 #include <chrono>
+#include <cstdint>
+
+using ht::core::ByteOffset;
 
 IMPLEMENT_DYNAMIC_CLASS(HexView, wxView)
 
@@ -49,7 +52,6 @@ HexView::HexView() {
    m_mouse_down = false;  // mouse is initially up
    m_mouse_over = wxPoint(-1, -1);
    m_scrollpos = wxPoint(0, 0);
-   m_caretpos = wxPoint(0, 0);
    m_text_y_offset = 0;
 }
 
@@ -70,7 +72,7 @@ void HexView::OnLeftDown(wxMouseEvent &event) {
    wxPoint point = event.GetPosition();
 
    bool same_pos = false;
-   int row = ((point.y - m_base.y) / text_sz.y) + m_start_line;
+   const std::int64_t row = ((point.y - m_base.y) / text_sz.y) + m_start_line;
 
    // a click in the horizontal ruler
    if (!m_base.Contains(point))
@@ -85,15 +87,9 @@ void HexView::OnLeftDown(wxMouseEvent &event) {
          col = m_columns - 1;
       // col = 0, row += 1;  // this makes it behave quite like hexedit, but still needs some work
 
-      // if we are past file size, go back
-      if (row * m_columns + col >= view_data_sz)
-         row = view_data_sz / m_columns, col = view_data_sz % m_columns;
-
-      if (col == m_caretpos.x && row == m_caretpos.y)
-         same_pos = true;
-
-      // m_frame->SetCaretPos(wxPoint(col, row));
-      m_caretpos = wxPoint(col, row);
+      const ByteOffset offset = std::min(row * m_columns + col, static_cast<ByteOffset>(view_data_sz));
+      same_pos = offset == GetCurrentOffset();
+      m_editorState.caretOffset = offset;
       m_frame->GetCanvas()->GetCaret()->Hide();
 
       m_edit_char = false;
@@ -104,18 +100,10 @@ void HexView::OnLeftDown(wxMouseEvent &event) {
       // -- we have a click in the char area
       int col = Pos2CharCol(point.x);
 
-      // if we are past the last column, go to next line
-      if (col == m_columns)
-         col = 0, row += 1;
-
-      // if we are past file size, go back
-      if (row * m_columns + col >= view_data_sz)
-         row = view_data_sz / m_columns, col = view_data_sz % m_columns;
-
-      if (col == m_caretpos.x && row == m_caretpos.y)
-         same_pos = true;
-
-      m_caretpos = wxPoint(col, row);
+      // A column at the row width maps to the first byte of the next row.
+      const ByteOffset offset = std::min(row * m_columns + col, static_cast<ByteOffset>(view_data_sz));
+      same_pos = offset == GetCurrentOffset();
+      m_editorState.caretOffset = offset;
       m_frame->GetCanvas()->GetCaret()->Hide();
 
       m_edit_char = true;
@@ -195,15 +183,17 @@ void HexView::OnKeyDown(wxKeyEvent &event) {
    }
 }
 
-void HexView::JumpToOffset(wxFileOffset offset) {
+std::optional<ByteOffset> HexView::JumpToOffset(ByteOffset requestedOffset) {
    const wxFileOffset documentLength = GetDocument()->length();
-   offset = std::clamp(offset, wxFileOffset {0}, documentLength);
+   if (documentLength < 0)
+      return std::nullopt;
 
-   m_caretpos = wxPoint(static_cast<int>(offset % m_columns), static_cast<int>(offset / m_columns));
+   const ByteOffset caretOffset = m_editorController.JumpToOffset(requestedOffset, documentLength);
+   const int caretRow = static_cast<int>(caretOffset / m_columns);
+   const int visibleRows = std::max(1, m_base.height / text_sz.y);
 
-   RecalcViewState();
-   if (m_caretpos.y < m_start_line || m_caretpos.y > m_end_line) {
-      m_scrollpos.y = m_caretpos.y - m_numshown / 2;
+   if (caretRow < m_scrollpos.y || caretRow - m_scrollpos.y >= visibleRows) {
+      m_scrollpos.y = caretRow - visibleRows / 2;
    }
 
    ValidateScroll(m_scrollpos);
@@ -213,6 +203,21 @@ void HexView::JumpToOffset(wxFileOffset offset) {
    m_frame->GetCanvas()->Refresh();
    m_frame->GetCanvas()->Update();
    UpdateCaret();
+   return caretOffset;
+}
+
+wxPoint HexView::GetCaretPosition() const {
+   const ByteOffset offset = GetCurrentOffset();
+   return wxPoint(static_cast<int>(offset % m_columns), static_cast<int>(offset / m_columns));
+}
+
+void HexView::UpdateCaret() {
+   const wxPoint caretPosition = GetCaretPosition();
+   const int x = m_edit_char ? CharCol2Pos(caretPosition.x) : HexCol2Pos(caretPosition.x);
+   const int y = (caretPosition.y - m_start_line) * text_sz.y + m_base.y;
+
+   m_frame->GetCanvas()->GetCaret()->Move(x, y);
+   caretPosition.y >= m_start_line ? m_frame->ShowCaret() : m_frame->HideCaret();
 }
 
 void HexView::OnScroll(wxScrollWinEvent &event) {
@@ -242,7 +247,6 @@ void HexView::OnScroll(wxScrollWinEvent &event) {
    ValidateScroll(m_scrollpos);
    UpdateScrollbars();
 
-   // m_view->ValidateCaret(m_caretpos);
    m_frame->GetCanvas()->Refresh();
    UpdateCaret();
 }
@@ -348,7 +352,8 @@ void HexView::DrawCursorHighlight(wxDC *dc) const {
    if (m_mouse_down || !m_show_cursor_pos)
       return;
 
-   DrawPositionIndicator(dc, m_caretpos.y - m_start_line, m_caretpos.x, /*filled=*/true);
+   const wxPoint caretPosition = GetCaretPosition();
+   DrawPositionIndicator(dc, caretPosition.y - m_start_line, caretPosition.x, true);
 }
 
 void HexView::DrawMouseHighlight(wxDC *dc) const {
@@ -399,15 +404,16 @@ void HexView::DrawLines(wxDC *dc) const {
 }
 
 void HexView::DrawCaret(wxDC *dc) const {
-   if (m_caretpos.y < m_start_line || m_caretpos.y > m_end_line)
+   const wxPoint caretPosition = GetCaretPosition();
+   if (caretPosition.y < m_start_line || caretPosition.y > m_end_line)
       return;
 
    const wxColour &caret_fill_clr = wxGetApp().GetColorByRole(ColorRole::EditPosition);
 
-   const wxFileOffset caretOffset = m_caretpos.y * m_columns + m_caretpos.x;
-   const int cy = (m_caretpos.y - m_start_line) * text_sz.y + m_base.y;
-   const int hx = HexCol2Pos(m_caretpos.x);
-   const int cx = CharCol2Pos(m_caretpos.x);
+   const ByteOffset caretOffset = GetCurrentOffset();
+   const int cy = (caretPosition.y - m_start_line) * text_sz.y + m_base.y;
+   const int hx = HexCol2Pos(caretPosition.x);
+   const int cx = CharCol2Pos(caretPosition.x);
 
    const wxString hexText =
       caretOffset < view_data_sz ? wxString::Format(wxT("%02X"), view_data[caretOffset]) : wxString();
@@ -465,8 +471,9 @@ void HexView::DrawBackground(wxDC *dc) const {
 }
 
 void HexView::MovePos(int key, bool ctrl_down, bool shift_down, bool alt_down) {
-   int col = m_caretpos.x;
-   int row = m_caretpos.y;
+   const wxPoint caretPosition = GetCaretPosition();
+   int col = caretPosition.x;
+   std::int64_t row = caretPosition.y;
 
    if (key == WXK_LEFT) {
       col -= 1;
@@ -498,10 +505,9 @@ void HexView::MovePos(int key, bool ctrl_down, bool shift_down, bool alt_down) {
       col = 0;
    }
 
-   if (row * m_columns + col > view_data_sz)
-      col = view_data_sz % m_columns, row = view_data_sz / m_columns;
-
-   m_caretpos = wxPoint(col, row);
+   const ByteOffset candidateOffset = row * m_columns + col;
+   m_editorState.caretOffset = std::min(candidateOffset, static_cast<ByteOffset>(view_data_sz));
+   const std::int64_t caretRow = GetCurrentOffset() / m_columns;
 
    /* as vari�veis m_start_pos e m_end_pos s�o atualizadas apenas na fun��o
     OnDraw(), e talvez seja necess�rio mudar isso porque tem outras partes da HexView
@@ -512,10 +518,10 @@ void HexView::MovePos(int key, bool ctrl_down, bool shift_down, bool alt_down) {
     passar esse c�lculo de atualiza��o das vari�veis para uma fun��o e cham�-la caso necess�rio,
     ou ainda atualizar esses valores ap�s qualquer altera��o que os afete.
     */
-   if (m_caretpos.y >= m_end_line - m_additional_line ? 1 : 0) {
+   if (caretRow >= m_end_line - m_additional_line) {
       m_scrollpos.y += 1;
    }
-   else if (m_caretpos.y < m_start_line) {
+   else if (caretRow < m_start_line) {
       m_scrollpos.y -= 1;
    }
 
@@ -558,7 +564,6 @@ void HexView::RecalcDisplay() {
    // if the file data ends exactly in the end of an line, the next one must be shown
    m_numlines += ((doc_len % m_columns) == 0) ? 1 : 0;
 
-   m_caretpos = wxPoint(0, 0);
    UpdateScrollbars();
    UpdateCaret();
 }
@@ -656,12 +661,12 @@ void HexView::AddToDebugPanel(DebugPanel *panel) {
    watch("m_numshown", &m_numshown);
    watch("m_start_line", &m_start_line);
    watch("m_end_line", &m_end_line);
-   watch("m_caretpos", &m_caretpos);
    watch("m_base", &m_base);
    watch("m_scrollpos", &m_scrollpos);
+   watch("offset", &m_editorState.caretOffset);
 
-   m_debugWatches.push_back(panel->AddWatch(
-      tag + "offset", [this] { return wxString::Format("%lld", static_cast<long long>(GetCurrentOffset())); }));
+   m_debugWatches.push_back(
+      panel->AddWatch(tag + "caret position", [this] { return DebugPanel::ToString(GetCaretPosition()); }));
 }
 
 #endif

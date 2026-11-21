@@ -29,10 +29,12 @@
 #include <wx/wx.h>
 #endif
 
+#include "editor_controller.hpp"
 #include "hex_frame.hpp"
 #include "hex_doc.hpp"
 #include "ht_app.hpp"
 #include <wx/docview.h>
+#include <optional>
 
 #ifdef HT_DEBUG_PANEL_ENABLED
 #include "debug_panel.hpp"
@@ -54,18 +56,11 @@ public:
       RecalcDisplay();
    }
 
-   void UpdateCaret() {
-      int x = m_edit_char ? CharCol2Pos(m_caretpos.x) : HexCol2Pos(m_caretpos.x);
-      int y = (m_caretpos.y - m_start_line) * text_sz.y + m_base.y;
-
-      m_frame->GetCanvas()->GetCaret()->Move(x, y);
-      (m_caretpos.y - m_start_line) >= 0 ? m_frame->ShowCaret() : m_frame->HideCaret();
-   }
-
+   void UpdateCaret();
    void UpdateScrollbars();
 
-   wxFileOffset GetCurrentOffset() const { return m_caretpos.y * m_columns + m_caretpos.x; }
-   void JumpToOffset(wxFileOffset offset);
+   ht::core::ByteOffset GetCurrentOffset() const { return m_editorState.caretOffset; }
+   std::optional<ht::core::ByteOffset> JumpToOffset(ht::core::ByteOffset requestedOffset);
 
    HexFrame *GetFrame() const { return m_frame; }
    HexDoc *GetDocument() const { return static_cast<HexDoc *>(wxView::GetDocument()); }
@@ -107,6 +102,7 @@ public:
    void DoMouseWheel(const int lines);
 
 private:
+   wxPoint GetCaretPosition() const;
    void RecalcDisplay();
    void RecalcViewState();
 
@@ -204,7 +200,8 @@ private:
    bool m_mouse_down;    /**< is the left mouse button down? */
    wxPoint m_mouse_over; /**< row/col currently under the mouse pointer */
    wxPoint m_scrollpos;  /**< which position in the doc is the top left of the display */
-   wxPoint m_caretpos;   /**< position of the caret in the doc (also, selection begin point) */
+   ht::core::EditorState m_editorState;
+   ht::core::EditorController m_editorController {m_editorState};
 
    // view settings
    int m_columns;           /**< number of columns to display */
