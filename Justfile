@@ -11,6 +11,18 @@ configure:
 build:
     cmake --build --preset debug
 
+# builds the debug test executable
+build-tests:
+    cmake --build --preset debug --target unit-tests
+
+# runs all debug tests
+test: build-tests
+    ctest --preset debug --no-tests=error
+
+# runs tests matching a Catch2 tag, for example: just test-tag '[core]'
+test-tag TAG: build-tests
+    ./build/tests/unit-tests {{quote(TAG)}}
+
 # runs the program with gbd attached for debugging
 run-debugger: build
     gdb -q -ex "set debuginfod enabled on" -ex "set confirm off" -ex run --args ./build/hexterminator
@@ -28,6 +40,11 @@ configure-release:
 # builds the program in release mode
 build-release:
     cmake --build --preset release
+
+# builds and runs all release tests
+test-release:
+    cmake --build --preset release --target unit-tests
+    ctest --preset release --no-tests=error
 
 # runs the program in release mode
 run-release: build-release

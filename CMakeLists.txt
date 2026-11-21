@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.21)
 
+option(BUILD_TESTING "Build unit tests" OFF)
+if(BUILD_TESTING)
+   list(APPEND VCPKG_MANIFEST_FEATURES tests)
+endif()
+
 project(
    HEXterminator
    VERSION 1.0.0
@@ -58,3 +63,7 @@ if(WIN32)
    install(PROGRAMS ${MSVC_RUNTIME_DLLS} DESTINATION . COMPONENT HexterminatorRelease)
 endif()
 
+if(BUILD_TESTING)
+   enable_testing()
+   add_subdirectory(tests)
+endif()

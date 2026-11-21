@@ -10,5 +10,11 @@
         "debug-support"
       ]
     }
-  ]
+  ],
+  "features": {
+    "tests": {
+      "description": "Install dependencies for unit tests",
+      "dependencies": ["catch2"]
+    }
+  }
 }
