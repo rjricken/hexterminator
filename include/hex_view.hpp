@@ -59,7 +59,7 @@ public:
    void UpdateCaret();
    void UpdateScrollbars();
 
-   ht::core::ByteOffset GetCurrentOffset() const { return m_editorState.caretOffset; }
+   ht::core::ByteOffset GetCurrentOffset() const { return m_editorController.GetState().caretOffset; }
    std::optional<ht::core::ByteOffset> JumpToOffset(ht::core::ByteOffset requestedOffset);
 
    HexFrame *GetFrame() const { return m_frame; }
@@ -120,7 +120,7 @@ private:
    void DrawCaretCell(
       wxDC *dc, int x, int y, int w, const wxString &text, const wxColour &clr, CaretCellStyle style) const;
 
-   void MovePos(int key, bool ctrl_down, bool shift_down, bool alt_down);
+   void MoveCaret(ht::core::CaretMove move);
 
    int Pos2HexCol(const int pos) const;
    int Pos2CharCol(const int pos) const;
@@ -136,20 +136,6 @@ private:
       wxASSERT(col <= m_columns);
       int grouping_width = m_columns / m_group_by + (m_columns % m_group_by ? 1 : 0);
       return (1 + m_addr_width + m_columns * 3 + grouping_width) * text_sz.x + (col - 1) * text_sz.x;
-   }
-
-   // return file offset of given position
-   wxFileOffset Pos2Offset(wxPoint pos) const {
-      wxFileOffset address = (m_start_line + pos.y / text_sz.y) * m_columns;
-      address += m_edit_char ? Pos2CharCol(pos.x) : address += Pos2HexCol(pos.x);
-
-      return address;
-   }
-
-   // return position in view of given file offset
-   wxPoint Offset2Pos(wxFileOffset address) const {
-      return m_edit_char ? wxPoint(CharCol2Pos(address % m_columns), (address / m_columns) * text_sz.y)
-                         : wxPoint(HexCol2Pos(address % m_columns), (address / m_columns) * text_sz.y);
    }
 
    void ValidateScroll(wxPoint &scr_pos) {
@@ -194,12 +180,10 @@ private:
    bool m_additional_line; /**< needed if the line at the bottom of the view is clipped */
 
    // view state
-   bool m_edit_char;     /**< is the char area being edited? */
    bool m_mouse_down;    /**< is the left mouse button down? */
    wxPoint m_mouse_over; /**< row/col currently under the mouse pointer */
    wxPoint m_scrollpos;  /**< which position in the doc is the top left of the display */
-   ht::core::EditorState m_editorState;
-   ht::core::EditorController m_editorController {m_editorState};
+   ht::core::EditorController m_editorController;
 
    // view settings
    int m_columns;           /**< number of columns to display */

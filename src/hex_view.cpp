@@ -25,6 +25,8 @@
 #include <cstdint>
 
 using ht::core::ByteOffset;
+using ht::core::CaretMove;
+using ht::core::EditorPane;
 
 IMPLEMENT_DYNAMIC_CLASS(HexView, wxView)
 
@@ -48,7 +50,6 @@ HexView::HexView() {
    m_start_line = 0;
    m_end_line = 0;
 
-   m_edit_char = false;   // caret starts in hex area
    m_mouse_down = false;  // mouse is initially up
    m_mouse_over = wxPoint(-1, -1);
    m_scrollpos = wxPoint(0, 0);
@@ -71,48 +72,36 @@ bool HexView::OnCreate(wxDocument *doc, long WXUNUSED(flags)) {
 void HexView::OnLeftDown(wxMouseEvent &event) {
    wxPoint point = event.GetPosition();
 
-   bool same_pos = false;
-   const std::int64_t row = ((point.y - m_base.y) / text_sz.y) + m_start_line;
-
-   // a click in the horizontal ruler
    if (!m_base.Contains(point))
       return;
 
+   EditorPane pane;
+   int col;
    if (point.x >= 0 && point.x <= CharCol2Pos(0) - text_sz.x / 2) {
-      // -- we have a click in the hex area
-      int col = Pos2HexCol(point.x);
-
-      // past last column must put the caret at last column
-      if (col == m_columns)
-         col = m_columns - 1;
-      // col = 0, row += 1;  // this makes it behave quite like hexedit, but still needs some work
-
-      const ByteOffset offset = std::min(row * m_columns + col, static_cast<ByteOffset>(view_data_sz));
-      same_pos = offset == GetCurrentOffset();
-      m_editorState.caretOffset = offset;
-      m_frame->GetCanvas()->GetCaret()->Hide();
-
-      m_edit_char = false;
-      m_mouse_down = true;
-      UpdateCaret();
+      pane = EditorPane::Hex;
+      // The hex trailing edge selects the last column of this row.
+      col = std::min(Pos2HexCol(point.x), m_columns - 1);
    }
    else if (point.x >= CharCol2Pos(0) && point.x <= CharCol2Pos(m_columns) + text_sz.x) {
-      // -- we have a click in the char area
-      int col = Pos2CharCol(point.x);
-
-      // A column at the row width maps to the first byte of the next row.
-      const ByteOffset offset = std::min(row * m_columns + col, static_cast<ByteOffset>(view_data_sz));
-      same_pos = offset == GetCurrentOffset();
-      m_editorState.caretOffset = offset;
-      m_frame->GetCanvas()->GetCaret()->Hide();
-
-      m_edit_char = true;
-      m_mouse_down = true;
-      UpdateCaret();
+      pane = EditorPane::Character;
+      // The character trailing edge can select the first byte of the next row.
+      col = Pos2CharCol(point.x);
+   }
+   else {
+      return;
    }
 
-   if (!same_pos)
-      m_frame->GetCanvas()->Refresh(), m_frame->GetCanvas()->Update();
+   const wxFileOffset length = GetDocument()->length();
+   if (length < 0)
+      return;
+
+   const std::int64_t row = static_cast<std::int64_t>(m_start_line) + (point.y - m_base.y) / text_sz.y;
+   m_editorController.PlaceCaret(row * m_columns + col, pane, length);
+   m_frame->GetCanvas()->GetCaret()->Hide();
+   m_mouse_down = true;
+   UpdateCaret();
+   m_frame->GetCanvas()->Refresh();
+   m_frame->GetCanvas()->Update();
 }
 
 void HexView::OnLeftUp(wxMouseEvent &WXUNUSED(event)) {
@@ -163,16 +152,27 @@ void HexView::OnLeaveWindow(wxMouseEvent &WXUNUSED(event)) {
 void HexView::OnKeyDown(wxKeyEvent &event) {
    switch (event.GetKeyCode()) {
       case WXK_LEFT:
-      case WXK_RIGHT:
-      case WXK_UP:
-      case WXK_DOWN:
-      case WXK_END:
-      case WXK_HOME:
-         MovePos(event.GetKeyCode(), event.ControlDown(), event.ShiftDown(), event.AltDown());
+         MoveCaret(CaretMove::Left);
          break;
-
+      case WXK_RIGHT:
+         MoveCaret(CaretMove::Right);
+         break;
+      case WXK_UP:
+         MoveCaret(CaretMove::Up);
+         break;
+      case WXK_DOWN:
+         MoveCaret(CaretMove::Down);
+         break;
+      case WXK_HOME:
+         if (event.ControlDown())
+            MoveCaret(CaretMove::DocumentStart);
+         break;
+      case WXK_END:
+         if (event.ControlDown())
+            MoveCaret(CaretMove::DocumentEnd);
+         break;
       case WXK_TAB:
-         m_edit_char = !m_edit_char;
+         m_editorController.SwitchPane();
          UpdateCaret();
 
          m_frame->GetCanvas()->Refresh(), m_frame->GetCanvas()->Update();
@@ -213,7 +213,8 @@ wxPoint HexView::GetCaretPosition() const {
 
 void HexView::UpdateCaret() {
    const wxPoint caretPosition = GetCaretPosition();
-   const int x = m_edit_char ? CharCol2Pos(caretPosition.x) : HexCol2Pos(caretPosition.x);
+   const int x = m_editorController.GetState().activePane == EditorPane::Character ? CharCol2Pos(caretPosition.x)
+                                                                                   : HexCol2Pos(caretPosition.x);
    const int y = (caretPosition.y - m_start_line) * text_sz.y + m_base.y;
 
    m_frame->GetCanvas()->GetCaret()->Move(x, y);
@@ -423,7 +424,7 @@ void HexView::DrawCaret(wxDC *dc) const {
               (view_data[caretOffset] > 0x1F && view_data[caretOffset] < 0x7F) ? (char)view_data[caretOffset] : '.')
          : wxString();
 
-   if (!m_edit_char) {
+   if (m_editorController.GetState().activePane == EditorPane::Hex) {
       DrawCaretCell(dc, hx, cy, 2 * text_sz.x, hexText, caret_fill_clr, CaretCellStyle::Filled);
       DrawCaretCell(dc, cx, cy, text_sz.x, charText, caret_fill_clr, CaretCellStyle::Outline);
    }
@@ -470,54 +471,14 @@ void HexView::DrawBackground(wxDC *dc) const {
       dc->DrawRectangle(wxRect(0, 0, m_base.width, m_base.y - 3));
 }
 
-void HexView::MovePos(int key, bool ctrl_down, bool shift_down, bool alt_down) {
-   const wxPoint caretPosition = GetCaretPosition();
-   int col = caretPosition.x;
-   std::int64_t row = caretPosition.y;
+void HexView::MoveCaret(CaretMove move) {
+   const wxFileOffset documentLength = GetDocument()->length();
+   if (documentLength < 0)
+      return;
 
-   if (key == WXK_LEFT) {
-      col -= 1;
-
-      if (col < 0 && row == 0)
-         col = 0;
-
-      if (col < 0 && row > 0)
-         row -= 1, col = m_columns - 1;
-   }
-   else if (key == WXK_RIGHT) {
-      if (++col == m_columns)
-         col = 0, row += 1;
-   }
-   else if (key == WXK_UP) {
-      if (--row < 0)
-         row = 0;
-   }
-   else if (key == WXK_DOWN) {
-      row += 1;
-   }
-   else if (key == WXK_END && ctrl_down) {
-      // just make it ajust the position to the last one in the view
-      row = m_numlines + 1;
-      col = m_columns + 1;
-   }
-   else if (key == WXK_HOME && ctrl_down) {
-      row = 0;
-      col = 0;
-   }
-
-   const ByteOffset candidateOffset = row * m_columns + col;
-   m_editorState.caretOffset = std::min(candidateOffset, static_cast<ByteOffset>(view_data_sz));
+   m_editorController.MoveCaret(move, documentLength, m_columns);
    const std::int64_t caretRow = GetCurrentOffset() / m_columns;
 
-   /* as vari�veis m_start_pos e m_end_pos s�o atualizadas apenas na fun��o
-    OnDraw(), e talvez seja necess�rio mudar isso porque tem outras partes da HexView
-    que dependem de valores atualizados dessas vari�veis antes do pr�ximo OnDraw.
-
-    A navega��o n�o-linear do documento por exemplo requer c�lculos para reposicionamento
-    dos elementos gr�ficos da view antes do pr�ximo Draw, ent�o talvez a melhor op��o seja
-    passar esse c�lculo de atualiza��o das vari�veis para uma fun��o e cham�-la caso necess�rio,
-    ou ainda atualizar esses valores ap�s qualquer altera��o que os afete.
-    */
    if (caretRow >= m_end_line - m_additional_line) {
       m_scrollpos.y += 1;
    }
@@ -663,7 +624,7 @@ void HexView::AddToDebugPanel(DebugPanel *panel) {
    watch("m_end_line", &m_end_line);
    watch("m_base", &m_base);
    watch("m_scrollpos", &m_scrollpos);
-   watch("offset", &m_editorState.caretOffset);
+   watch("offset", &m_editorController.GetState().caretOffset);
 
    m_debugWatches.push_back(
       panel->AddWatch(tag + "caret position", [this] { return DebugPanel::ToString(GetCaretPosition()); }));

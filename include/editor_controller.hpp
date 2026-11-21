@@ -26,13 +26,59 @@
 
 namespace ht::core {
 
+enum class EditorPane { Hex, Character };
+
+enum class CaretMove { Left, Right, Up, Down, DocumentStart, DocumentEnd };
+
 struct EditorState {
    ByteOffset caretOffset = 0;
+   EditorPane activePane = EditorPane::Hex;
 };
 
 class EditorController {
 public:
-   explicit EditorController(EditorState &state) : m_state(state) {}
+   const EditorState &GetState() const { return m_state; }
+
+   void SwitchPane() {
+      m_state.activePane = m_state.activePane == EditorPane::Hex ? EditorPane::Character : EditorPane::Hex;
+   }
+
+   void PlaceCaret(ByteOffset requestedOffset, EditorPane pane, ByteOffset documentLength) {
+      JumpToOffset(requestedOffset, documentLength);
+      m_state.activePane = pane;
+   }
+
+   ByteOffset MoveCaret(CaretMove move, ByteOffset documentLength, int bytesPerRow) {
+      assert(documentLength >= 0 && bytesPerRow > 0);
+      ByteOffset offset = std::min(m_state.caretOffset, documentLength);
+
+      switch (move) {
+         case CaretMove::Left:
+            if (offset > 0)
+               --offset;
+            break;
+         case CaretMove::Right:
+            if (offset < documentLength)
+               ++offset;
+            break;
+         case CaretMove::Up:
+            if (offset >= bytesPerRow)
+               offset -= bytesPerRow;
+            break;
+         case CaretMove::Down:
+            offset += std::min<ByteOffset>(bytesPerRow, documentLength - offset);
+            break;
+         case CaretMove::DocumentStart:
+            offset = 0;
+            break;
+         case CaretMove::DocumentEnd:
+            offset = documentLength;
+            break;
+      }
+
+      m_state.caretOffset = offset;
+      return offset;
+   }
 
    // Requires documentLength >= 0. Clamps requestedOffset to [0, documentLength],
    // then stores and returns the resulting caret offset.
@@ -44,7 +90,7 @@ public:
    }
 
 private:
-   EditorState &m_state;
+   EditorState m_state;
 };
 
 }  // namespace ht::core
