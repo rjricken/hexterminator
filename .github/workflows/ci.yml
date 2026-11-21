@@ -44,6 +44,9 @@ jobs:
       - name: Build
         run: cmake --build --preset release
 
+      - name: Run Tests
+        run: ctest --preset release --no-tests=error
+
   build-windows:
     name: Build (Windows)
     runs-on: windows-latest
@@ -76,3 +79,6 @@ jobs:
 
       - name: Build
         run: cmake --build --preset release
+
+      - name: Run Tests
+        run: ctest --preset release --no-tests=error
